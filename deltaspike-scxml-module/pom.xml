@@ -7,6 +7,21 @@
     <packaging>pom</packaging>
     <name>Apache DeltaSpike SCXML-Module</name>
     
+    <distributionManagement>
+        <repository>
+            <id>primefacesex-repository-releases</id>
+            <name>Maven Repository for JBoss Seam SCXML (releases)</name>
+            <url>svn:https://deltaspike-scxml.googlecode.com/svn/maven-repo/releases</url>
+            <uniqueVersion>false</uniqueVersion>
+        </repository>
+        <snapshotRepository>
+            <id>primefacesex-repository-snapshots</id>
+            <name>Maven Repository for JBoss Seam SCXML (snapshots)</name>
+            <url>svn:https://deltaspike-scxml.googlecode.com/svn/maven-repo/snapshots</url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
+    
     <build>
         <plugins>
             <plugin>
@@ -64,6 +79,7 @@
             </build>
         </profile>
     </profiles>
+    
     
     
     <modules>
