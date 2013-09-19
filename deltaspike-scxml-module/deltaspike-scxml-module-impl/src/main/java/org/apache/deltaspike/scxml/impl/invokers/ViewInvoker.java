@@ -100,6 +100,7 @@ public class ViewInvoker implements Invoker, Serializable, PathResolverHolder {
                 clearViewMapIfNecessary(fc.getViewRoot(), viewId);
                 updateRenderTargets(fc, viewId);
                 ec.getFlash().setRedirect(true);
+                ec.getFlash().setKeepMessages(true);
                 ec.redirect(redirect);
                 fc.responseComplete();
             } else {
