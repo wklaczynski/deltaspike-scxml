@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.deltaspike.modules</groupId>
     <artifactId>deltaspike-scxml-module</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.7</version>
     <packaging>pom</packaging>
     <name>Apache DeltaSpike SCXML-Module</name>
     
