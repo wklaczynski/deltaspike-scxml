@@ -6,6 +6,7 @@ package org.apache.deltaspike.scxml.impl.context;
 
 import java.lang.annotation.Annotation;
 import java.util.Stack;
+import javax.enterprise.context.spi.Contextual;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.BeanManager;
 import org.apache.commons.scxml.Context;
@@ -25,7 +26,7 @@ import org.apache.deltaspike.scxml.impl.DialogUtils;
  */
 public class ParallelContextImpl extends AbstractContext {
 
-    private BeanManager beanManager;
+    private final BeanManager beanManager;
     
     public ParallelContextImpl(BeanManager beanManager) {
         super(beanManager);
@@ -37,7 +38,7 @@ public class ParallelContextImpl extends AbstractContext {
     }
 
     @Override
-    protected ContextualStorage getContextualStorage(boolean createIfNotExist) {
+    protected ContextualStorage getContextualStorage(Contextual<?> contextual, boolean createIfNotExist) {
         Stack<ContextualStorage> stack = getStack();
         return stack.peek();
     }

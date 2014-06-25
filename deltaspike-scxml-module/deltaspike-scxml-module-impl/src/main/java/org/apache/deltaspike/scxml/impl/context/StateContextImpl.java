@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import javax.enterprise.context.ContextNotActiveException;
+import javax.enterprise.context.spi.Contextual;
 import javax.enterprise.inject.spi.BeanManager;
 import org.apache.commons.scxml.Context;
 import org.apache.commons.scxml.SCXMLExecutor;
@@ -84,7 +85,7 @@ public class StateContextImpl extends AbstractContext {
     }
 
     @Override
-    protected ContextualStorage getContextualStorage(boolean createIfNotExist) {
+    protected ContextualStorage getContextualStorage(Contextual<?> contextual, boolean createIfNotExist) {
         SCXMLExecutor executor = getExecutor();
         if (executor == null) {
             throw new ContextNotActiveException("SCXMLExecutor: no dialog set for the current Thread yet!");

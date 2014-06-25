@@ -5,6 +5,7 @@
 package org.apache.deltaspike.scxml.impl.context;
 
 import java.lang.annotation.Annotation;
+import javax.enterprise.context.spi.Contextual;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
@@ -34,7 +35,7 @@ public class DialogContextImpl extends AbstractContext {
     }
 
     @Override
-    protected ContextualStorage getContextualStorage(boolean createIfNotExist) {
+    protected ContextualStorage getContextualStorage(Contextual<?> contextual, boolean createIfNotExist) {
         FacesContext fc = FacesContext.getCurrentInstance();
         ExternalContext ec = fc.getExternalContext();
         SCXMLExecutor executor = getExecutor();
