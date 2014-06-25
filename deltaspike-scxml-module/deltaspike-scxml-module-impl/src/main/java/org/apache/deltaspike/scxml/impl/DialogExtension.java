@@ -140,8 +140,8 @@ public class DialogExtension implements Extension, Deactivatable {
     public static class TypedParamProducerBlueprint {
 
         private Bean<Object> producer;
-        private Set<Class<?>> targetTypes;
-        private Annotation qualifier;
+        private final Set<Class<?>> targetTypes;
+        private final Annotation qualifier;
 
         public TypedParamProducerBlueprint(Annotation qualifier) {
             this.qualifier = qualifier;
