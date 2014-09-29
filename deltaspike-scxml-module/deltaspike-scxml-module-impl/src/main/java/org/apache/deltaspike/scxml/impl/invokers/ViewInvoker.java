@@ -71,11 +71,11 @@ public class ViewInvoker implements Invoker, Serializable, PathResolverHolder {
             String viewId = url.getFile();
             DialogPublisher publisher = BeanProvider.getContextualReference(DialogPublisher.class);
             ServletContext ctx = publisher.getServletContext();
-            String contextPath = ctx.getContextPath();
-            if (viewId.indexOf(contextPath) > -1) {
-                viewId = viewId.substring(viewId.indexOf(contextPath));
-                viewId = viewId.substring(contextPath.length());
+            String realPath = ctx.getRealPath("/");
+            if (viewId.contains(realPath)) {
+                viewId = viewId.substring(realPath.length());
             }
+            
             ViewHandler vh = fc.getApplication().getViewHandler();
             if (fc.getViewRoot() != null) {
                 String currentViewId = fc.getViewRoot().getViewId();

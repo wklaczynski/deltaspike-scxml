@@ -105,10 +105,9 @@ public class SubInvoker implements Invoker, Serializable {
             URL url = new URL(source);
             String viewId = url.getFile();
             ServletContext ctx = publisher.getServletContext();
-            String contextPath = ctx.getContextPath();
-            if (viewId.indexOf(contextPath) > -1) {
-                viewId = viewId.substring(viewId.indexOf(contextPath));
-                viewId = viewId.substring(contextPath.length());
+            String realPath = ctx.getRealPath("/");
+            if (viewId.contains(realPath)) {
+                viewId = viewId.substring(realPath.length());
             }
 
             FacesContext fc = FacesContext.getCurrentInstance();
