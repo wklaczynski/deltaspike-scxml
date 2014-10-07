@@ -108,6 +108,11 @@ public class SubInvoker implements Invoker, Serializable {
             if (viewId.contains(realPath)) {
                 viewId = viewId.substring(realPath.length());
             }
+            String contextPath = ctx.getContextPath();
+            if (viewId.contains(contextPath)) {
+                viewId = viewId.substring(viewId.indexOf(contextPath));
+                viewId = viewId.substring(contextPath.length());
+            }
 
             scxml = publisher.getModel(viewId);
             Evaluator eval = parentSCInstance.getEvaluator();

@@ -75,6 +75,11 @@ public class ViewInvoker implements Invoker, Serializable, PathResolverHolder {
             if (viewId.contains(realPath)) {
                 viewId = viewId.substring(realPath.length());
             }
+            String contextPath = ctx.getContextPath();
+            if (viewId.contains(contextPath)) {
+                viewId = viewId.substring(viewId.indexOf(contextPath));
+                viewId = viewId.substring(contextPath.length());
+            }
             
             ViewHandler vh = fc.getApplication().getViewHandler();
             if (fc.getViewRoot() != null) {
