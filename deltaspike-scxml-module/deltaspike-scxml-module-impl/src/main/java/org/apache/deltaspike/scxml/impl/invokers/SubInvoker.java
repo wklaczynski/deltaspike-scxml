@@ -9,7 +9,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.Map;
-import javax.faces.context.FacesContext;
 import javax.servlet.ServletContext;
 import org.apache.commons.scxml.*;
 import org.apache.commons.scxml.env.SimpleDispatcher;
@@ -110,20 +109,6 @@ public class SubInvoker implements Invoker, Serializable {
                 viewId = viewId.substring(realPath.length());
             }
 
-            FacesContext fc = FacesContext.getCurrentInstance();
-//            PartialViewContext pvc = fc.getPartialViewContext();
-//            if (pvc != null && pvc.isAjaxRequest()) {
-//                ExternalContext ec = fc.getExternalContext();
-//                Map<String, List<String>> param = new HashMap<String, List<String>>();
-//                Map<String, String[]> requestMap = ec.getRequestParameterValuesMap();
-////                for (Map.Entry<String, String[]> entry : requestMap.entrySet()) {
-////                    String name = entry.getKey();
-////                    param.put(name, Arrays.asList(entry.getValue()));
-////                }
-//                String redirect = ec.encodeRedirectURL(viewId, param);
-//                //ec.redirect(redirect);
-//            } else {
-
             scxml = publisher.getModel(viewId);
             Evaluator eval = parentSCInstance.getEvaluator();
             executor = new SCXMLExecutor(eval, new SimpleDispatcher(), new SimpleErrorReporter());
@@ -154,7 +139,6 @@ public class SubInvoker implements Invoker, Serializable {
                 new AsyncTrigger(parentSCInstance.getExecutor(), te).start();
             }
 
-//            }
         } catch (MalformedURLException ex) {
             throw new InvokerException(ex);
         }
