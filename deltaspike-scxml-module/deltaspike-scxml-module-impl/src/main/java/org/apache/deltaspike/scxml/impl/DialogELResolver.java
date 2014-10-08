@@ -164,15 +164,15 @@ public class DialogELResolver extends ELResolver implements Serializable {
         }
 
         public Object get(String name) {
-            return ctx.get("result." + name);
+            return ctx.get(name);
         }
 
         public void set(String name, Object value) {
-            ctx.setLocal("result." + name, value);
+            ctx.setLocal(name, value);
         }
 
         public boolean has(String name) {
-            return ctx.has("result." + name);
+            return ctx.has(name);
         }
     }
 
