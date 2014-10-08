@@ -186,6 +186,16 @@ public class SubInvoker implements Invoker, Serializable {
             }
             TriggerEvent te = new TriggerEvent(eventPrefix + invokeDone, TriggerEvent.SIGNAL_EVENT);
             trigger.add(te);
+            
+            Context ctx = executor.getRootContext();
+            if(ctx.has("__@result@__")){
+                Context result = (Context) ctx.get("__@result@__");
+                Status pstatus = parentSCInstance.getExecutor().getCurrentStatus();
+                State pstate = (State) pstatus.getStates().iterator().next();
+                Context pcontext = parentSCInstance.getContext(pstate);
+                pcontext.setLocal("__@result@__", result);
+            }
+            
             trigger.start();
         }
     }

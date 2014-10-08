@@ -8,23 +8,20 @@ import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
-import org.apache.commons.scxml.Context;
-import org.apache.commons.scxml.SCXMLExecutor;
-import org.apache.deltaspike.scxml.api.DialogManager;
 import org.apache.deltaspike.scxml.api.DialogViewParam;
-import org.apache.deltaspike.scxml.impl.TypedParamValue;
+import org.apache.deltaspike.scxml.impl.TypedViewParamValue;
 
 /**
  *
  * @author Waldemar Kłaczyński
  */
-public class DialogParamProducer {
+public class DialogViewParamProducer {
 
     @Inject
-    Instance<DialogManager> managers;
+    Instance<ViewParamsContext> context;
 
     @Produces
-    @TypedParamValue
+    @TypedViewParamValue
     protected Object getTypedParamValue(InjectionPoint ip) {
         Object v = getParameterValue(getParameterName(ip), ip);
         return v;
@@ -40,17 +37,8 @@ public class DialogParamProducer {
 
     private Object getParameterValue(String parameterName, InjectionPoint ip) {
         Object result = null;
-        DialogManager manager = managers.get();
-        if (manager != null) {
-            SCXMLExecutor executor = manager.getExecutor();
-            if (executor != null) {
-                Context context = executor.getRootContext();
-
-                if (context.has(parameterName)) {
-                    result = context.get(parameterName);
-                }
-            }
-
+        if (context.get().containsKey(parameterName)) {
+            result = context.get().get(parameterName);
         }
         return result;
     }

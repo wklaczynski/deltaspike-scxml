@@ -20,12 +20,16 @@ import org.apache.deltaspike.core.spi.activation.Deactivatable;
 import org.apache.deltaspike.core.util.ClassDeactivationUtils;
 import org.apache.deltaspike.core.util.ClassUtils;
 import org.apache.deltaspike.core.util.bean.BeanBuilder;
+import org.apache.deltaspike.core.util.metadata.builder.AnnotatedTypeBuilder;
 import org.apache.deltaspike.scxml.api.DialogParam;
+import org.apache.deltaspike.scxml.api.DialogViewParam;
+import org.apache.deltaspike.scxml.api.literal.DialogParamLiteral;
 import org.apache.deltaspike.scxml.impl.context.DialogContextImpl;
 import org.apache.deltaspike.scxml.impl.context.ParallelContextImpl;
 import org.apache.deltaspike.scxml.impl.context.StateContextImpl;
+import org.apache.deltaspike.scxml.impl.invokers.DialogViewParamProducer;
+import org.apache.deltaspike.scxml.api.literal.DialogViewParamLiteral;
 import org.apache.deltaspike.scxml.impl.invokers.DialogParamProducer;
-import org.apache.deltaspike.scxml.api.literal.DialogParamLiteral;
 
 /**
  *
@@ -40,10 +44,27 @@ public class DialogExtension implements Extension, Deactivatable {
 
     public DialogExtension() {
         producerBlueprints = new HashMap<Class<? extends Annotation>, TypedParamProducerBlueprint>();
+        producerBlueprints.put(DialogViewParam.class, new TypedParamProducerBlueprint(DialogViewParamLiteral.INSTANCE));
         producerBlueprints.put(DialogParam.class, new TypedParamProducerBlueprint(DialogParamLiteral.INSTANCE));
         converterMembersByType = new HashMap<Class<?>, Member>();
     }
 
+    public <T> void processAnnotatedType(@Observes final ProcessAnnotatedType<T> event, BeanManager manager) {
+        AnnotatedTypeBuilder<T> modifiedType = null;
+        for (AnnotatedField<? super T> field : event.getAnnotatedType().getFields()) {
+            boolean bootstrapped = false;
+    
+        }
+
+        for (AnnotatedMethod<? super T> method : event.getAnnotatedType().getMethods()) {
+            if (method.isAnnotationPresent(DialogParam.class)) {
+            }
+        }
+    
+    }
+
+        
+            
     public void afterBeanDiscovery(@Observes AfterBeanDiscovery event, BeanManager manager) {
         this.isActivated = ClassDeactivationUtils.isActivated(getClass());
 
@@ -61,6 +82,15 @@ public class DialogExtension implements Extension, Deactivatable {
         }
     }
 
+    void processRequestViewParamProducer(@Observes ProcessProducerMethod<Object, DialogViewParamProducer> event) {
+        if (!this.isActivated) {
+            return;
+        }
+        if (event.getAnnotatedProducerMethod().getBaseType().equals(Object.class) && event.getAnnotatedProducerMethod().isAnnotationPresent(TypedViewParamValue.class)) {
+            producerBlueprints.get(DialogViewParam.class).setProducer(event.getBean());
+        }
+    }
+
     void processRequestParamProducer(@Observes ProcessProducerMethod<Object, DialogParamProducer> event) {
         if (!this.isActivated) {
             return;
@@ -69,7 +99,8 @@ public class DialogExtension implements Extension, Deactivatable {
             producerBlueprints.get(DialogParam.class).setProducer(event.getBean());
         }
     }
-
+    
+    
     <X> void detectInjections(@Observes ProcessInjectionTarget<X> event) {
         if (!this.isActivated) {
             return;

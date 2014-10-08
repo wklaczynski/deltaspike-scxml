@@ -15,19 +15,20 @@ import org.apache.commons.scxml.SCXMLExpressionException;
 import org.apache.commons.scxml.TriggerEvent;
 import org.apache.commons.scxml.model.Action;
 import org.apache.commons.scxml.model.ModelException;
+import org.apache.commons.scxml.model.TransitionTarget;
 import org.apache.deltaspike.scxml.api.DialogAction;
 
 /**
  *
  * @author Waldemar Kłaczyński
  */
-@DialogAction(value="var", namespaceURI="http://www.apache.org/scxml/actions")
-public class VarAction extends Action {
+@DialogAction(value = "result", namespaceURI = "http://www.apache.org/scxml/actions")
+public class ResultAction extends Action {
 
     private String name = null;
     private String expr = null;
 
-    public VarAction() {
+    public ResultAction() {
         super();
     }
 
@@ -49,17 +50,24 @@ public class VarAction extends Action {
 
     @Override
     public void execute(EventDispatcher evtDispatcher, ErrorReporter errRep, SCInstance scInstance, Log appLog, Collection derivedEvents) throws ModelException, SCXMLExpressionException {
-        Context ctx = scInstance.getContext(getParentTransitionTarget());
+        Context ctx = scInstance.getRootContext();
         Evaluator eval = scInstance.getEvaluator();
-        ctx.setLocal(getNamespacesKey(), getNamespaces());
-        Object varObj = eval.eval(ctx, expr);
-        ctx.setLocal(getNamespacesKey(), null);
-        ctx.setLocal(name, varObj);
-        if (appLog.isDebugEnabled()) {
-            appLog.debug("<var>: Defined variable '" + name + "' with initial value '" + String.valueOf(varObj) + "'");
+        Context result = (Context) ctx.get("__@result@__");
+        if (result == null) {
+            result = eval.newContext(null);
+            ctx.set("__@result@__", result);
         }
-        TriggerEvent ev = new TriggerEvent(name + ".change", TriggerEvent.CHANGE_EVENT);
+
+        result.setLocal(getNamespacesKey(), getNamespaces());
+        Object varObj = eval.eval(ctx, expr);
+        result.setLocal(getNamespacesKey(), null);
+        result.setLocal(name, varObj);
+        if (appLog.isDebugEnabled()) {
+            appLog.debug("<var>: Defined result variable '" + name + "' with initial value '" + String.valueOf(varObj) + "'");
+        }
+        TriggerEvent ev = new TriggerEvent("result." + name + ".change", TriggerEvent.CHANGE_EVENT);
         derivedEvents.add(ev);
+
     }
-    
+
 }

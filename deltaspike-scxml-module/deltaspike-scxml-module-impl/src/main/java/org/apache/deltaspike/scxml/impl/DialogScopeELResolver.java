@@ -132,6 +132,10 @@ public class DialogScopeELResolver extends ELResolver {
             if (property.toString().equals(DIALOG_SCOPE)) {
                 context.setPropertyResolved(true);
                 result = true;
+            } else if (STATE_VARIABLE_NAME.equals(property.toString())) {
+                result = true;
+            } else if (DIALOG_SCOPE.equals(property.toString())) {
+                result = true;
             }
         } else if (base instanceof DialogScope) {
             result = false;
@@ -202,14 +206,12 @@ public class DialogScopeELResolver extends ELResolver {
     private DialogParams getDialogParams(ELContext context) {
         DialogParams attrScope = null;
         SCXMLExecutor executor = (SCXMLExecutor) context.getContext(SCXMLExecutor.class);
+        if (executor == null) {
+            executor = getExecutor();
+        }
+
         if (executor != null) {
-            Context ctx = (Context) context.getContext(Context.class);
-            if (ctx == null) {
-                ctx = executor.getRootContext();
-            }
-            if (ctx != null) {
-                attrScope = new DialogParams(executor, ctx);
-            }
+            attrScope = new DialogParams(executor);
         }
         return attrScope;
     }
@@ -244,9 +246,9 @@ public class DialogScopeELResolver extends ELResolver {
         private final Context ctx;
         private final SCXMLExecutor executor;
 
-        public DialogParams(SCXMLExecutor executor, Context ctx) {
+        public DialogParams(SCXMLExecutor executor) {
             this.executor = executor;
-            this.ctx = ctx;
+            this.ctx = executor.getRootContext();
         }
 
         public Context getCtx() {
@@ -262,8 +264,7 @@ public class DialogScopeELResolver extends ELResolver {
         }
 
         public void set(String name, Object value) {
-            Context root = executor.getRootContext();
-            root.setLocal(name, value);
+            ctx.setLocal(name, value);
         }
 
         public boolean has(String name) {

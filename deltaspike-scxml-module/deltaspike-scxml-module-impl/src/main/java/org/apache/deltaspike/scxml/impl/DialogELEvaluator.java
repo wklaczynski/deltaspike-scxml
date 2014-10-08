@@ -60,6 +60,34 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         }
     }
 
+    public void evalSet(Context ctx, String expr, Object value) throws SCXMLExpressionException {
+        if (expr == null) {
+            return;
+        }
+        FacesContext fc = FacesContext.getCurrentInstance();
+        ExpressionFactory ef = fc.getApplication().getExpressionFactory();
+        ELContext fcontext = fc.getELContext();
+        ELContext context = new ContextWrapper(fcontext);
+        DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
+        SCXMLExecutor executor = manager.getExecutor();
+        try {
+            fcontext.putContext(Context.class, ctx);
+            fcontext.putContext(DialogManager.class, manager);
+            fcontext.putContext(SCXMLExecutor.class, executor);
+
+            String evalExpr = inFct.matcher(expr).replaceAll("In(_ALL_STATES, ");
+            evalExpr = dataFct.matcher(evalExpr).replaceAll("Data(_ALL_NAMESPACES, ");
+            ValueExpression ve = ef.createValueExpression(context, evalExpr, Object.class);
+            ve.setValue(context, value);
+        } catch (PropertyNotFoundException e) {
+            throw new SCXMLExpressionException("eval('" + expr + "'):" + e.getMessage(), e);
+        } catch (ELException e) {
+            throw new SCXMLExpressionException("eval('" + expr + "'):" + e.getMessage(), e);
+        } finally {
+            fcontext.putContext(Context.class, new SimpleContext());
+        }
+    }
+    
     @Override
     public Boolean evalCond(Context ctx, String expr) throws SCXMLExpressionException {
         if (expr == null) {

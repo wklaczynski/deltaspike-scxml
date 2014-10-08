@@ -15,19 +15,22 @@ import org.apache.commons.scxml.SCXMLExpressionException;
 import org.apache.commons.scxml.TriggerEvent;
 import org.apache.commons.scxml.model.Action;
 import org.apache.commons.scxml.model.ModelException;
+import org.apache.commons.scxml.model.TransitionTarget;
+import org.apache.commons.scxml.semantics.ErrorConstants;
 import org.apache.deltaspike.scxml.api.DialogAction;
+import org.apache.deltaspike.scxml.impl.DialogELEvaluator;
 
 /**
  *
  * @author Waldemar Kłaczyński
  */
-@DialogAction(value="var", namespaceURI="http://www.apache.org/scxml/actions")
-public class VarAction extends Action {
+@DialogAction(value = "inbound", namespaceURI = "http://www.apache.org/scxml/actions")
+public class InboundAction extends Action {
 
     private String name = null;
     private String expr = null;
 
-    public VarAction() {
+    public InboundAction() {
         super();
     }
 
@@ -49,17 +52,22 @@ public class VarAction extends Action {
 
     @Override
     public void execute(EventDispatcher evtDispatcher, ErrorReporter errRep, SCInstance scInstance, Log appLog, Collection derivedEvents) throws ModelException, SCXMLExpressionException {
-        Context ctx = scInstance.getContext(getParentTransitionTarget());
-        Evaluator eval = scInstance.getEvaluator();
-        ctx.setLocal(getNamespacesKey(), getNamespaces());
-        Object varObj = eval.eval(ctx, expr);
-        ctx.setLocal(getNamespacesKey(), null);
-        ctx.setLocal(name, varObj);
-        if (appLog.isDebugEnabled()) {
-            appLog.debug("<var>: Defined variable '" + name + "' with initial value '" + String.valueOf(varObj) + "'");
+        TransitionTarget parentTarget = getParentTransitionTarget();
+        Context ctx = scInstance.getContext(parentTarget);
+        DialogELEvaluator eval = (DialogELEvaluator) scInstance.getEvaluator();
+
+        if (!ctx.has(name)) {
+            errRep.onError(ErrorConstants.UNDEFINED_VARIABLE, name + " = null", parentTarget);
+        } else {
+            Object varObj = ctx.get(name);
+            eval.evalSet(ctx, expr, varObj);
+            if (appLog.isDebugEnabled()) {
+                appLog.debug("<assign>: Set variable '" + name + "' to '" + expr + "'");
+            }
+            TriggerEvent ev = new TriggerEvent(name + ".inbound", TriggerEvent.CHANGE_EVENT);
+            derivedEvents.add(ev);
         }
-        TriggerEvent ev = new TriggerEvent(name + ".change", TriggerEvent.CHANGE_EVENT);
-        derivedEvents.add(ev);
+
     }
-    
+
 }
