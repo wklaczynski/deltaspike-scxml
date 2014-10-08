@@ -17,6 +17,7 @@ import org.apache.commons.scxml.invoke.Invoker;
 import org.apache.commons.scxml.invoke.InvokerException;
 import org.apache.commons.scxml.model.ModelException;
 import org.apache.commons.scxml.model.SCXML;
+import org.apache.commons.scxml.model.State;
 import org.apache.deltaspike.core.api.provider.BeanProvider;
 import org.apache.deltaspike.scxml.api.DialogInvoker;
 import org.apache.deltaspike.scxml.api.DialogManager;
@@ -59,15 +60,15 @@ public class SubInvoker implements Invoker, Serializable {
     /**
      * Prefix for all events sent to the parent state machine.
      */
-    private static String invokePrefix = ".invoke.";
+    private static final String invokePrefix = ".invoke.";
     /**
      * Suffix for invoke done event.
      */
-    private static String invokeDone = "done";
+    private static final String invokeDone = "done";
     /**
      * Suffix for invoke cancel response event.
      */
-    private static String invokeCancelResponse = "cancel.response";
+    private static final String invokeCancelResponse = "cancel.response";
 
     public SubInvoker() {
         super();
@@ -140,6 +141,14 @@ public class SubInvoker implements Invoker, Serializable {
                 throw new InvokerException(me.getMessage(), me.getCause());
             }
             if (executor.getCurrentStatus().isFinal()) {
+                Status status = executor.getCurrentStatus();
+                for (Iterator i = status.getStates().iterator(); i.hasNext();) {
+                    State state = (State) i.next();
+                    if (state.isFinal()) {
+                        TriggerEvent te = new TriggerEvent(eventPrefix + state.getId(), TriggerEvent.SIGNAL_EVENT);
+                        new AsyncTrigger(parentSCInstance.getExecutor(), te).start();
+                    }
+                }
                 TriggerEvent te = new TriggerEvent(eventPrefix + invokeDone, TriggerEvent.SIGNAL_EVENT);
                 new AsyncTrigger(parentSCInstance.getExecutor(), te).start();
             }
@@ -153,10 +162,9 @@ public class SubInvoker implements Invoker, Serializable {
      * {@inheritDoc}.
      */
     @Override
-    public void parentEvents(final TriggerEvent[] evts)
-            throws InvokerException {
+    public void parentEvents(final TriggerEvent[] evts) throws InvokerException {
         if (cancelled) {
-            return; // no further processing should take place
+            return;
         }
         boolean doneBefore = executor.getCurrentStatus().isFinal();
         try {
@@ -165,10 +173,20 @@ public class SubInvoker implements Invoker, Serializable {
             throw new InvokerException(me.getMessage(), me.getCause());
         }
         if (!doneBefore && executor.getCurrentStatus().isFinal()) {
+            AsyncTrigger trigger = new AsyncTrigger(parentSCInstance.getExecutor());
+            Status status = executor.getCurrentStatus();
             DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
             manager.popExecutor();
+            for (Iterator i = status.getStates().iterator(); i.hasNext();) {
+                State state = (State) i.next();
+                if (state.isFinal()) {
+                    TriggerEvent te = new TriggerEvent(eventPrefix + state.getId(), TriggerEvent.SIGNAL_EVENT);
+                    trigger.add(te);
+                }
+            }
             TriggerEvent te = new TriggerEvent(eventPrefix + invokeDone, TriggerEvent.SIGNAL_EVENT);
-            new AsyncTrigger(parentSCInstance.getExecutor(), te).start();
+            trigger.add(te);
+            trigger.start();
         }
     }
 

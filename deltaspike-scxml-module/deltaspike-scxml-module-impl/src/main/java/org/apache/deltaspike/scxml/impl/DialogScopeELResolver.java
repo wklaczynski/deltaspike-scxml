@@ -22,6 +22,8 @@ import org.apache.commons.scxml.SCXMLExecutor;
 public class DialogScopeELResolver extends ELResolver {
 
     public static final String DIALOG_SCOPE = "dialogScope";
+    public static final String DIALOG_VARIABLE_NAME = "dialog";
+    public static final String STATE_VARIABLE_NAME = "state";
     public static final String DIALOG_PARAM_MAP = "org.scxml.attr";
 
     @Override
@@ -32,10 +34,24 @@ public class DialogScopeELResolver extends ELResolver {
             throw new PropertyNotFoundException(message);
         }
         if (null == base) {
-            if (DIALOG_SCOPE.equals(property.toString())) {
+            if (DIALOG_VARIABLE_NAME.equals(property.toString())) {
+                context.setPropertyResolved(true);
+                result = getDialogParams(context);
+            } else if (STATE_VARIABLE_NAME.equals(property.toString())) {
+                context.setPropertyResolved(true);
+                result = getStateParams(context);
+            } else if (DIALOG_SCOPE.equals(property.toString())) {
                 context.setPropertyResolved(true);
                 result = getDialogScope(context);
             }
+        } else if (base instanceof DialogParams) {
+            context.setPropertyResolved(true);
+            DialogParams scope = (DialogParams) base;
+            result = scope.get(property.toString());
+        } else if (base instanceof StateParams) {
+            context.setPropertyResolved(true);
+            StateParams scope = (StateParams) base;
+            result = scope.get(property.toString());
         } else if (base instanceof DialogScope) {
             context.setPropertyResolved(true);
             DialogScope scope = (DialogScope) base;
@@ -52,8 +68,26 @@ public class DialogScopeELResolver extends ELResolver {
             throw new PropertyNotFoundException(message);
         }
         if (null == base) {
-            if (DIALOG_SCOPE.equals(property.toString())) {
+            if (DIALOG_VARIABLE_NAME.equals(property.toString())) {
+                result = DialogParams.class;
+            } else if (STATE_VARIABLE_NAME.equals(property.toString())) {
+                result = StateParams.class;
+            } else if (DIALOG_SCOPE.equals(property.toString())) {
                 result = DialogScope.class;
+            }
+        } else if (base instanceof DialogParams) {
+            context.setPropertyResolved(true);
+            DialogParams scope = (DialogParams) base;
+            Object value = scope.get(property.toString());
+            if (value != null) {
+                result = value.getClass();
+            }
+        } else if (base instanceof StateParams) {
+            context.setPropertyResolved(true);
+            StateParams scope = (StateParams) base;
+            Object value = scope.get(property.toString());
+            if (value != null) {
+                result = value.getClass();
             }
         } else if (base instanceof DialogScope) {
             context.setPropertyResolved(true);
@@ -62,9 +96,6 @@ public class DialogScopeELResolver extends ELResolver {
             if (value != null) {
                 result = value.getClass();
             }
-        } else if (base instanceof DialogScope) {
-            context.setPropertyResolved(true);
-            result = String.class;
         }
         return result;
     }
@@ -79,6 +110,14 @@ public class DialogScopeELResolver extends ELResolver {
             context.setPropertyResolved(true);
             DialogScope scope = (DialogScope) base;
             scope.put(property.toString(), value);
+        } else if (base instanceof DialogParams) {
+            context.setPropertyResolved(true);
+            DialogParams scope = (DialogParams) base;
+            scope.set(property.toString(), value);
+        } else if (base instanceof StateParams) {
+            context.setPropertyResolved(true);
+            StateParams scope = (StateParams) base;
+            scope.set(property.toString(), value);
         }
     }
 
@@ -96,6 +135,10 @@ public class DialogScopeELResolver extends ELResolver {
             }
         } else if (base instanceof DialogScope) {
             result = false;
+        } else if (base instanceof DialogParams) {
+            result = false;
+        } else if (base instanceof StateParams) {
+            result = false;
         }
         return result;
     }
@@ -111,12 +154,18 @@ public class DialogScopeELResolver extends ELResolver {
             Map<String, Object> params = scope;
             for (Map.Entry<String, Object> param : params.entrySet()) {
                 FeatureDescriptor desc = new FeatureDescriptor();
-                desc.setName(param.getKey().toString());
+                desc.setName(param.getKey());
                 desc.setDisplayName("Dialog Scope Object");
                 desc.setValue(ELResolver.TYPE, param.getValue().getClass());
                 desc.setValue(ELResolver.RESOLVABLE_AT_DESIGN_TIME, true);
                 result.add(desc);
             }
+        } else if (base instanceof DialogParams) {
+            context.setPropertyResolved(true);
+            DialogParams scope = (DialogParams) base;
+        } else if (base instanceof StateParams) {
+            context.setPropertyResolved(true);
+            StateParams scope = (StateParams) base;
         }
         return result.iterator();
     }
@@ -150,6 +199,33 @@ public class DialogScopeELResolver extends ELResolver {
         return attrScope;
     }
 
+    private DialogParams getDialogParams(ELContext context) {
+        DialogParams attrScope = null;
+        SCXMLExecutor executor = (SCXMLExecutor) context.getContext(SCXMLExecutor.class);
+        if (executor != null) {
+            Context ctx = (Context) context.getContext(Context.class);
+            if (ctx == null) {
+                ctx = executor.getRootContext();
+            }
+            if (ctx != null) {
+                attrScope = new DialogParams(executor, ctx);
+            }
+        }
+        return attrScope;
+    }
+
+    private StateParams getStateParams(ELContext context) {
+        StateParams attrScope = null;
+        SCXMLExecutor executor = (SCXMLExecutor) context.getContext(SCXMLExecutor.class);
+        if (executor != null) {
+            Context ctx = (Context) context.getContext(Context.class);
+            if (ctx != null) {
+                attrScope = new StateParams(ctx);
+            }
+        }
+        return attrScope;
+    }
+
     public class DialogScope extends ConcurrentHashMap<String, Object> implements Serializable {
 
         public DialogScope() {
@@ -160,6 +236,69 @@ public class DialogScopeELResolver extends ELResolver {
             FacesContext ctx = FacesContext.getCurrentInstance();
             ScopeContext context = new ScopeContext(DIALOG_SCOPE, this);
             ctx.getApplication().publishEvent(ctx, PostConstructCustomScopeEvent.class, context);
+        }
+    }
+
+    private static class DialogParams extends AbstractMap<String, Object> implements Serializable {
+
+        private final Context ctx;
+        private final SCXMLExecutor executor;
+
+        public DialogParams(SCXMLExecutor executor, Context ctx) {
+            this.executor = executor;
+            this.ctx = ctx;
+        }
+
+        public Context getCtx() {
+            return ctx;
+        }
+
+        public SCXMLExecutor getExecutor() {
+            return executor;
+        }
+
+        public Object get(String name) {
+            return ctx.get(name);
+        }
+
+        public void set(String name, Object value) {
+            Context root = executor.getRootContext();
+            root.setLocal(name, value);
+        }
+
+        public boolean has(String name) {
+            return ctx.has(name);
+        }
+
+        @Override
+        public Set<Map.Entry<String, Object>> entrySet() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+    }
+
+    private static class StateParams implements Serializable {
+
+        private final Context ctx;
+
+        public StateParams(Context ctx) {
+            this.ctx = ctx;
+        }
+
+        public Context getCtx() {
+            return ctx;
+        }
+
+        public Object get(String name) {
+            return ctx.get(name);
+        }
+
+        public void set(String name, Object value) {
+            ctx.setLocal(name, value);
+        }
+
+        public boolean has(String name) {
+            return ctx.has(name);
         }
     }
 

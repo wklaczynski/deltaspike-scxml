@@ -4,6 +4,8 @@
  */
 package org.apache.deltaspike.scxml.impl.invokers;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.scxml.SCXMLExecutor;
@@ -16,47 +18,64 @@ import org.apache.commons.scxml.model.ModelException;
  */
 public class AsyncTrigger implements Runnable {
 
-    /**
-     * The state machine executor.
-     */
+
     private final SCXMLExecutor executor;
-    /**
-     * The event(s) to be triggered.
-     */
-    private final TriggerEvent[] events;
-    /**
-     * The log.
-     */
+
+    private final List<TriggerEvent> events;
+
     private final Log log = LogFactory.getLog(AsyncTrigger.class);
 
-    /**
-     * Constructor.
-     *
-     * @param executor The {@link SCXMLExecutor} to trigger the event on.
-     * @param event The {@link TriggerEvent}.
-     */
     AsyncTrigger(final SCXMLExecutor executor, final TriggerEvent event) {
         this.executor = executor;
-        this.events = new TriggerEvent[1];
-        this.events[0] = event;
+        this.events = new ArrayList();
+        this.events.add(event);
     }
 
-    /**
-     * Fire the trigger(s) asynchronously.
-     */
+    AsyncTrigger(final SCXMLExecutor executor) {
+        this.executor = executor;
+        this.events = new ArrayList();
+    }
+    
+    public boolean isEmpty() {
+        return events.isEmpty();
+    }
+
+    public boolean contains(TriggerEvent e) {
+        return events.contains(e);
+    }
+
+    public boolean add(TriggerEvent e) {
+        return events.add(e);
+    }
+
+    public TriggerEvent get(int index) {
+        return events.get(index);
+    }
+
+    public TriggerEvent set(int index, TriggerEvent element) {
+        return events.set(index, element);
+    }
+
+    public void add(int index, TriggerEvent element) {
+        events.add(index, element);
+    }
+
+    public TriggerEvent remove(int index) {
+        return events.remove(index);
+    }
+
     public void start() {
-        //new Thread(this).start();
-        run();
+        if (!events.isEmpty()) {
+            run();
+        }
     }
 
-    /**
-     * Fire the event(s).
-     */
     @Override
     public void run() {
         try {
             synchronized (executor) {
-                executor.triggerEvents(events);
+                TriggerEvent[] evts = events.toArray(new TriggerEvent[events.size()]);
+                executor.triggerEvents(evts);
             }
         } catch (ModelException me) {
             log.error(me.getMessage(), me);

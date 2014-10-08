@@ -38,14 +38,14 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         }
         FacesContext fc = FacesContext.getCurrentInstance();
         ExpressionFactory ef = fc.getApplication().getExpressionFactory();
-        ELContext context = fc.getELContext();
+        ELContext fcontext = fc.getELContext();
+        ELContext context = new ContextWrapper(fcontext);
         DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
         SCXMLExecutor executor = manager.getExecutor();
-        context = new ContextWrapper(context);
         try {
-            context.putContext(Context.class, ctx);
-            context.putContext(DialogManager.class, manager);
-            context.putContext(SCXMLExecutor.class, executor);
+            fcontext.putContext(Context.class, ctx);
+            fcontext.putContext(DialogManager.class, manager);
+            fcontext.putContext(SCXMLExecutor.class, executor);
 
             String evalExpr = inFct.matcher(expr).replaceAll("In(_ALL_STATES, ");
             evalExpr = dataFct.matcher(evalExpr).replaceAll("Data(_ALL_NAMESPACES, ");
@@ -56,9 +56,7 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         } catch (ELException e) {
             throw new SCXMLExpressionException("eval('" + expr + "'):" + e.getMessage(), e);
         } finally {
-//            context.putContext(Context.class, null);
-//            context.putContext(DialogManager.class, null);
-//            context.putContext(SCXMLExecutor.class, null);
+            fcontext.putContext(Context.class, new SimpleContext());
         }
     }
 
@@ -69,16 +67,17 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         }
         FacesContext fc = FacesContext.getCurrentInstance();
         ExpressionFactory ef = fc.getApplication().getExpressionFactory();
-        ELContext context = fc.getELContext();
-        context = new ContextWrapper(context);
+        ELContext fcontext = fc.getELContext();
+        ELContext context = new ContextWrapper(fcontext);
+        
         DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
         SCXMLExecutor executor = manager.getExecutor();
 
 
         try {
-            context.putContext(Context.class, ctx);
-            context.putContext(DialogManager.class, manager);
-            context.putContext(SCXMLExecutor.class, executor);
+            fcontext.putContext(Context.class, ctx);
+            fcontext.putContext(DialogManager.class, manager);
+            fcontext.putContext(SCXMLExecutor.class, executor);
 
             String evalExpr = inFct.matcher(expr).replaceAll("In(_ALL_STATES, ");
             evalExpr = dataFct.matcher(evalExpr).replaceAll("Data(_ALL_NAMESPACES, ");
@@ -89,9 +88,7 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         } catch (ELException e) {
             throw new SCXMLExpressionException("eval('" + expr + "'):" + e.getMessage(), e);
         } finally {
-//            context.putContext(Context.class, null);
-//            context.putContext(DialogManager.class, null);
-//            context.putContext(SCXMLExecutor.class, null);
+            fcontext.putContext(Context.class, new SimpleContext());
         }
     }
 
@@ -102,14 +99,14 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         }
         FacesContext fc = FacesContext.getCurrentInstance();
         ExpressionFactory ef = fc.getApplication().getExpressionFactory();
-        ELContext context = fc.getELContext();
+        ELContext fcontext = fc.getELContext();
+        ELContext context = new ContextWrapper(fcontext);
         DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
         SCXMLExecutor executor = manager.getExecutor();
-        context = new ContextWrapper(context);
         try {
-            context.putContext(Context.class, ctx);
-            context.putContext(DialogManager.class, manager);
-            context.putContext(SCXMLExecutor.class, executor);
+            fcontext.putContext(Context.class, ctx);
+            fcontext.putContext(DialogManager.class, manager);
+            fcontext.putContext(SCXMLExecutor.class, executor);
 
             String evalExpr = inFct.matcher(expr).replaceAll("In(_ALL_STATES, ");
             evalExpr = dataFct.matcher(evalExpr).replaceAll("Data(_ALL_NAMESPACES, ");
@@ -121,9 +118,7 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         } catch (ELException e) {
             throw new SCXMLExpressionException("eval('" + expr + "'):" + e.getMessage(), e);
         } finally {
-//            context.putContext(Context.class, null);
-//            context.putContext(DialogManager.class, null);
-//            context.putContext(SCXMLExecutor.class, null);
+            fcontext.putContext(Context.class, new SimpleContext());
         }
     }
 
