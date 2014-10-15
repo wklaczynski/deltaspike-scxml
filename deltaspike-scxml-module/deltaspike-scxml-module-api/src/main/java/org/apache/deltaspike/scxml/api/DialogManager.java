@@ -4,6 +4,7 @@
  */
 package org.apache.deltaspike.scxml.api;
 
+import java.util.Map;
 import java.util.Stack;
 import org.apache.commons.scxml.SCXMLExecutor;
 
@@ -17,7 +18,7 @@ public interface DialogManager {
     
     SCXMLExecutor getRootExecutor();
     
-    void start(String src);
+    void start(String src, Map params);
     
     void stop();
     
