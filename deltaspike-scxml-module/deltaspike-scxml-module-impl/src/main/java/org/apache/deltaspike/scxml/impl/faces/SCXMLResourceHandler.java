@@ -18,7 +18,7 @@ import javax.faces.context.FacesContext;
 public class SCXMLResourceHandler extends ResourceHandlerWrapper {
 
     private final static Logger logger = Logger.getLogger(SCXMLResourceHandler.class.getName());
-    private ResourceHandler wrapped;
+    private final ResourceHandler wrapped;
 
     public SCXMLResourceHandler(ResourceHandler wrapped) {
         this.wrapped = wrapped;

@@ -6,6 +6,7 @@ package org.apache.deltaspike.scxml.impl.faces;
 
 import java.beans.BeanInfo;
 import java.io.IOException;
+import java.util.Map;
 import javax.faces.application.Resource;
 import javax.faces.component.UIViewRoot;
 import javax.faces.context.FacesContext;
@@ -52,6 +53,8 @@ public class SCXMLViewDeclarationLanguage extends ViewDeclarationLanguage {
         if (viewId.endsWith(scxmlSufix)) {
             String path = viewId.substring(0, viewId.lastIndexOf(scxmlSufix));
             path += ".scxml";
+            Map<String, String> params = context.getExternalContext().getRequestParameterMap();
+
             DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
             UIViewRoot scxmlRoot = new UIViewRoot();
             scxmlRoot.setViewId(viewId);
@@ -60,7 +63,7 @@ public class SCXMLViewDeclarationLanguage extends ViewDeclarationLanguage {
                 if (context.getViewRoot() == null) {
                     context.setViewRoot(scxmlRoot);
                 }
-                manager.start(path);
+                manager.start(path, params);
             } finally {
                 if (oldRoot != null) {
                     context.setViewRoot(oldRoot);

@@ -13,6 +13,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
+import org.apache.commons.scxml.Context;
 import org.apache.commons.scxml.SCXMLExecutor;
 import org.apache.commons.scxml.Status;
 import org.apache.commons.scxml.env.SimpleDispatcher;
@@ -133,7 +134,7 @@ public class DialogManagerImpl implements DialogManager {
     }
 
     @Override
-    public void start(String src) {
+    public void start(String src, Map params) {
         initialize();
         try {
             if (conversation.isTransient()) {
@@ -145,8 +146,15 @@ public class DialogManagerImpl implements DialogManager {
             SCXMLExecutor executor;
             SCXML statemachine = publisher.getModel(src);
             executor = new SCXMLExecutor(new DialogELEvaluator(), new SimpleDispatcher(), new SimpleErrorReporter());
+            Context rootCtx = executor.getEvaluator().newContext(null);
+            if (params != null) {
+                for (Iterator iter = params.entrySet().iterator(); iter.hasNext();) {
+                    Map.Entry entry = (Map.Entry) iter.next();
+                    rootCtx.setLocal((String) entry.getKey(), entry.getValue());
+                }
+            }
+            executor.setRootContext(rootCtx);
             executor.setStateMachine(statemachine);
-            executor.setRootContext(executor.getEvaluator().newContext(null));
             executor.addListener(statemachine, new DelegatingListener());
             Map<String, Class<Invoker>> customInvokers = publisher.getCustomInvokers();
             for (Map.Entry<String, Class<Invoker>> entry : customInvokers.entrySet()) {
@@ -182,7 +190,7 @@ public class DialogManagerImpl implements DialogManager {
                 conversation.end();
             }
             BeanManager bm = new BeanManagerLocator().getBeanManager();
-             bm.fireEvent(new DialogOnFinalEvent());
+            bm.fireEvent(new DialogOnFinalEvent());
         }
     }
 
@@ -199,6 +207,5 @@ public class DialogManagerImpl implements DialogManager {
             //stop();
         }
     }
-    
-    
+
 }
