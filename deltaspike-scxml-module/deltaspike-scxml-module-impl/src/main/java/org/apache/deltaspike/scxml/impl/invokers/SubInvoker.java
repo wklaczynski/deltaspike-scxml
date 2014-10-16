@@ -124,6 +124,7 @@ public class SubInvoker implements Invoker, Serializable {
                 Map.Entry entry = (Map.Entry) iter.next();
                 rootCtx.setLocal((String) entry.getKey(), entry.getValue());
             }
+            rootCtx.setLocal("scxml_has_parent", true);
             executor.setRootContext(rootCtx);
             executor.setStateMachine(scxml);
             executor.addListener(scxml, new DelegatingListener());
@@ -141,6 +142,7 @@ public class SubInvoker implements Invoker, Serializable {
                 throw new InvokerException(me.getMessage(), me.getCause());
             }
             if (executor.getCurrentStatus().isFinal()) {
+                manager.popExecutor();
                 Status status = executor.getCurrentStatus();
                 for (Iterator i = status.getStates().iterator(); i.hasNext();) {
                     State state = (State) i.next();
