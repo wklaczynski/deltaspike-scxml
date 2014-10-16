@@ -53,7 +53,7 @@ public class SCXMLViewDeclarationLanguage extends ViewDeclarationLanguage {
         if (viewId.endsWith(scxmlSufix)) {
             String path = viewId.substring(0, viewId.lastIndexOf(scxmlSufix));
             path += ".scxml";
-            Map<String, String> params = context.getExternalContext().getRequestParameterMap();
+            //Map<String, String> params = context.getExternalContext().getRequestParameterMap();
 
             DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
             UIViewRoot scxmlRoot = new UIViewRoot();
@@ -63,7 +63,7 @@ public class SCXMLViewDeclarationLanguage extends ViewDeclarationLanguage {
                 if (context.getViewRoot() == null) {
                     context.setViewRoot(scxmlRoot);
                 }
-                manager.start(path, params);
+                manager.start(path, null);
             } finally {
                 if (oldRoot != null) {
                     context.setViewRoot(oldRoot);
