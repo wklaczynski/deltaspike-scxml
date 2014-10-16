@@ -6,7 +6,6 @@ package org.apache.deltaspike.scxml.impl.faces;
 
 import java.beans.BeanInfo;
 import java.io.IOException;
-import java.util.Map;
 import javax.faces.application.Resource;
 import javax.faces.component.UIViewRoot;
 import javax.faces.context.FacesContext;
