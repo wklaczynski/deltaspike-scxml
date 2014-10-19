@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.apache.deltaspike.scxml.impl.invokers;
+package org.apache.deltaspike.scxml.impl.el;
 
 import java.beans.FeatureDescriptor;
 import java.io.Serializable;
@@ -12,6 +12,7 @@ import javax.el.ELContext;
 import javax.el.ELResolver;
 import javax.el.PropertyNotFoundException;
 import org.apache.deltaspike.core.api.provider.BeanProvider;
+import org.apache.deltaspike.scxml.impl.invokers.ViewParamsContext;
 
 /**
  *

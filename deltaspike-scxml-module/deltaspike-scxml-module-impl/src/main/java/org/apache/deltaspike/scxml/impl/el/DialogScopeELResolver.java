@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.apache.deltaspike.scxml.impl;
+package org.apache.deltaspike.scxml.impl.el;
 
 import java.beans.FeatureDescriptor;
 import java.io.Serializable;
@@ -14,6 +14,7 @@ import javax.faces.event.PostConstructCustomScopeEvent;
 import javax.faces.event.ScopeContext;
 import org.apache.commons.scxml.Context;
 import org.apache.commons.scxml.SCXMLExecutor;
+import org.apache.deltaspike.scxml.impl.DialogUtils;
 
 /**
  *

@@ -8,7 +8,6 @@ import java.util.Collection;
 import org.apache.commons.logging.Log;
 import org.apache.commons.scxml.Context;
 import org.apache.commons.scxml.ErrorReporter;
-import org.apache.commons.scxml.Evaluator;
 import org.apache.commons.scxml.EventDispatcher;
 import org.apache.commons.scxml.SCInstance;
 import org.apache.commons.scxml.SCXMLExpressionException;
@@ -18,7 +17,7 @@ import org.apache.commons.scxml.model.ModelException;
 import org.apache.commons.scxml.model.TransitionTarget;
 import org.apache.commons.scxml.semantics.ErrorConstants;
 import org.apache.deltaspike.scxml.api.DialogAction;
-import org.apache.deltaspike.scxml.impl.DialogELEvaluator;
+import org.apache.deltaspike.scxml.impl.el.DialogELEvaluator;
 
 /**
  *

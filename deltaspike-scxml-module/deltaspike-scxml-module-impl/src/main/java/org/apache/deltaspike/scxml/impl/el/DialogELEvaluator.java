@@ -1,18 +1,19 @@
+package org.apache.deltaspike.scxml.impl.el;
+
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.apache.deltaspike.scxml.impl;
-
+import com.sun.faces.application.ApplicationAssociate;
+import com.sun.faces.facelets.compiler.CompilationMessageHolder;
+import com.sun.faces.facelets.compiler.CompilationMessageHolderImpl;
+import com.sun.faces.facelets.compiler.Compiler;
+import com.sun.faces.facelets.tag.TagLibrary;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 import javax.el.*;
 import javax.faces.context.FacesContext;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.scxml.*;
 import org.apache.commons.scxml.env.SimpleContext;
 import org.apache.deltaspike.core.api.provider.BeanProvider;
@@ -27,8 +28,11 @@ public class DialogELEvaluator implements Evaluator, Serializable {
 
     private static final Pattern inFct = Pattern.compile("In\\(");
     private static final Pattern dataFct = Pattern.compile("Data\\(");
+    private final ApplicationAssociate associate;
 
     public DialogELEvaluator() {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        associate = ApplicationAssociate.getInstance(ctx.getExternalContext());
     }
 
     @Override
@@ -36,12 +40,14 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         if (expr == null) {
             return null;
         }
+        CompilationMessageHolder messageHolder = new CompilationMessageHolderImpl();
+        
+        DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
+        SCXMLExecutor executor = manager.getExecutor();
         FacesContext fc = FacesContext.getCurrentInstance();
         ExpressionFactory ef = fc.getApplication().getExpressionFactory();
         ELContext fcontext = fc.getELContext();
-        ELContext context = new ContextWrapper(fcontext);
-        DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-        SCXMLExecutor executor = manager.getExecutor();
+        ELContext context = new ContextWrapper(fcontext, executor, messageHolder);
         try {
             fcontext.putContext(Context.class, ctx);
             fcontext.putContext(DialogManager.class, manager);
@@ -57,6 +63,7 @@ public class DialogELEvaluator implements Evaluator, Serializable {
             throw new SCXMLExpressionException("eval('" + expr + "'):" + e.getMessage(), e);
         } finally {
             fcontext.putContext(Context.class, new SimpleContext());
+            messageHolder.processCompilationMessages(fc);
         }
     }
 
@@ -64,12 +71,14 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         if (expr == null) {
             return;
         }
+        CompilationMessageHolder messageHolder = new CompilationMessageHolderImpl();
+
+        DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
+        SCXMLExecutor executor = manager.getExecutor();
         FacesContext fc = FacesContext.getCurrentInstance();
         ExpressionFactory ef = fc.getApplication().getExpressionFactory();
         ELContext fcontext = fc.getELContext();
-        ELContext context = new ContextWrapper(fcontext);
-        DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-        SCXMLExecutor executor = manager.getExecutor();
+        ELContext context = new ContextWrapper(fcontext, executor, messageHolder);
         try {
             fcontext.putContext(Context.class, ctx);
             fcontext.putContext(DialogManager.class, manager);
@@ -85,23 +94,23 @@ public class DialogELEvaluator implements Evaluator, Serializable {
             throw new SCXMLExpressionException("eval('" + expr + "'):" + e.getMessage(), e);
         } finally {
             fcontext.putContext(Context.class, new SimpleContext());
+            messageHolder.processCompilationMessages(fc);
         }
     }
-    
+
     @Override
     public Boolean evalCond(Context ctx, String expr) throws SCXMLExpressionException {
         if (expr == null) {
             return null;
         }
-        FacesContext fc = FacesContext.getCurrentInstance();
-        ExpressionFactory ef = fc.getApplication().getExpressionFactory();
-        ELContext fcontext = fc.getELContext();
-        ELContext context = new ContextWrapper(fcontext);
+        CompilationMessageHolder messageHolder = new CompilationMessageHolderImpl();
         
         DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
         SCXMLExecutor executor = manager.getExecutor();
-
-
+        FacesContext fc = FacesContext.getCurrentInstance();
+        ExpressionFactory ef = fc.getApplication().getExpressionFactory();
+        ELContext fcontext = fc.getELContext();
+        ELContext context = new ContextWrapper(fcontext, executor, messageHolder);
         try {
             fcontext.putContext(Context.class, ctx);
             fcontext.putContext(DialogManager.class, manager);
@@ -117,6 +126,7 @@ public class DialogELEvaluator implements Evaluator, Serializable {
             throw new SCXMLExpressionException("eval('" + expr + "'):" + e.getMessage(), e);
         } finally {
             fcontext.putContext(Context.class, new SimpleContext());
+            messageHolder.processCompilationMessages(fc);
         }
     }
 
@@ -125,12 +135,14 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         if (expr == null) {
             return null;
         }
+        CompilationMessageHolder messageHolder = new CompilationMessageHolderImpl();
+        
+        DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
+        SCXMLExecutor executor = manager.getExecutor();
         FacesContext fc = FacesContext.getCurrentInstance();
         ExpressionFactory ef = fc.getApplication().getExpressionFactory();
         ELContext fcontext = fc.getELContext();
-        ELContext context = new ContextWrapper(fcontext);
-        DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-        SCXMLExecutor executor = manager.getExecutor();
+        ELContext context = new ContextWrapper(fcontext, executor, messageHolder);
         try {
             fcontext.putContext(Context.class, ctx);
             fcontext.putContext(DialogManager.class, manager);
@@ -155,18 +167,29 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         return new SimpleContext(parent);
     }
 
-    public static class ContextWrapper extends ELContext implements Serializable {
+    public class ContextWrapper extends ELContext implements Serializable {
 
         private final ELContext context;
-        private final FunctionMapper functionMapper;
+        private final CompositeFunctionMapper functionMapper;
         private final VariableMapper variableMapper;
         private final CompositeELResolver elResolver;
 
-        public ContextWrapper(ELContext context) {
+        private ContextWrapper(ELContext context, SCXMLExecutor executor, CompilationMessageHolder messageHolder) {
             super();
             this.context = context;
-            functionMapper = new BuiltinFunctionMapper(context.getFunctionMapper());
+            functionMapper = new CompositeFunctionMapper();
             variableMapper = new BuiltinVariableMapper(context.getVariableMapper());
+
+            functionMapper.add(new BuiltinFunctionMapper());
+            
+            Compiler compiler = associate.getCompiler();
+            TagLibrary tagLibrary = compiler.createTagLibrary(messageHolder);
+            Map namespaces = executor.getStateMachine().getNamespaces();
+            
+            functionMapper.add(new TagsFunctionMapper(namespaces, tagLibrary));
+            
+            functionMapper.add(context.getFunctionMapper());
+
             elResolver = new CompositeELResolver();
             elResolver.add(new DialogELResolver());
             elResolver.add(context.getELResolver());
@@ -217,54 +240,4 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         }
     }
 
-    static class BuiltinFunctionMapper extends FunctionMapper implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-        private final Log log = LogFactory.getLog(DialogELEvaluator.BuiltinFunctionMapper.class);
-        private final FunctionMapper mapper;
-
-        public BuiltinFunctionMapper(FunctionMapper mapper) {
-            super();
-            this.mapper = mapper;
-        }
-
-        @Override
-        public Method resolveFunction(final String prefix, final String localName) {
-            if (localName.equals("In")) {
-                Class[] attrs = new Class[]{Set.class, String.class};
-                try {
-                    return Builtin.class.getMethod("isMember", attrs);
-                } catch (SecurityException e) {
-                    log.error("resolving isMember(Set, String)", e);
-                } catch (NoSuchMethodException e) {
-                    log.error("resolving isMember(Set, String)", e);
-                }
-            } else if (localName.equals("Data")) {
-                // rvalue in expressions, coerce to String
-                Class[] attrs =
-                        new Class[]{Map.class, Object.class, String.class};
-                try {
-                    return Builtin.class.getMethod("data", attrs);
-                } catch (SecurityException e) {
-                    log.error("resolving data(Node, String)", e);
-                } catch (NoSuchMethodException e) {
-                    log.error("resolving data(Node, String)", e);
-                }
-            } else if (localName.equals("LData")) {
-                // lvalue in expressions, retain as Node
-                Class[] attrs =
-                        new Class[]{Map.class, Object.class, String.class};
-                try {
-                    return Builtin.class.getMethod("dataNode", attrs);
-                } catch (SecurityException e) {
-                    log.error("resolving data(Node, String)", e);
-                } catch (NoSuchMethodException e) {
-                    log.error("resolving data(Node, String)", e);
-                }
-            } else if (mapper != null) {
-                return mapper.resolveFunction(prefix, localName);
-            }
-            return null;
-        }
-    }
 }

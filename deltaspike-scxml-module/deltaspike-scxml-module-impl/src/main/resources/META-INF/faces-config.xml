@@ -10,8 +10,8 @@
 
     <application>
         <navigation-handler>org.apache.deltaspike.scxml.impl.faces.DialogNavigationHandler</navigation-handler>
-        <el-resolver>org.apache.deltaspike.scxml.impl.invokers.ViewELResolver</el-resolver>
-        <el-resolver>org.apache.deltaspike.scxml.impl.DialogScopeELResolver</el-resolver>
+        <el-resolver>org.apache.deltaspike.scxml.impl.el.ViewELResolver</el-resolver>
+        <el-resolver>org.apache.deltaspike.scxml.impl.el.DialogScopeELResolver</el-resolver>
         <state-manager></state-manager>
     </application>
 

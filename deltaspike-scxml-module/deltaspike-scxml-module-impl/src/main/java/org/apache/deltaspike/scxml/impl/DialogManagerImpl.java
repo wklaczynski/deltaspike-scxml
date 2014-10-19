@@ -4,6 +4,9 @@
  */
 package org.apache.deltaspike.scxml.impl;
 
+import com.sun.faces.application.ApplicationAssociate;
+import com.sun.faces.facelets.compiler.Compiler;
+import org.apache.deltaspike.scxml.impl.el.DialogELEvaluator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +15,7 @@ import javax.enterprise.context.Conversation;
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.BeanManager;
+import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import org.apache.commons.scxml.Context;
 import org.apache.commons.scxml.SCXMLExecutor;
@@ -135,6 +139,7 @@ public class DialogManagerImpl implements DialogManager {
 
             SCXMLExecutor executor;
             SCXML statemachine = publisher.getModel(src);
+
             executor = new SCXMLExecutor(new DialogELEvaluator(), new SimpleDispatcher(), new SimpleErrorReporter());
             Context rootCtx = executor.getEvaluator().newContext(null);
             if (params != null) {
