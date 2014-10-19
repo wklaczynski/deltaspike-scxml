@@ -4,6 +4,7 @@
  */
 package org.apache.deltaspike.scxml.impl.invokers;
 
+import org.apache.deltaspike.scxml.impl.AsyncTrigger;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;

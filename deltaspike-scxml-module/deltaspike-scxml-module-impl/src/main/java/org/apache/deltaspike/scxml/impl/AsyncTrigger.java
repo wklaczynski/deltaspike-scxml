@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.apache.deltaspike.scxml.impl.invokers;
+package org.apache.deltaspike.scxml.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +25,13 @@ public class AsyncTrigger implements Runnable {
 
     private final Log log = LogFactory.getLog(AsyncTrigger.class);
 
-    AsyncTrigger(final SCXMLExecutor executor, final TriggerEvent event) {
+    public AsyncTrigger(final SCXMLExecutor executor, final TriggerEvent event) {
         this.executor = executor;
         this.events = new ArrayList();
         this.events.add(event);
     }
 
-    AsyncTrigger(final SCXMLExecutor executor) {
+    public AsyncTrigger(final SCXMLExecutor executor) {
         this.executor = executor;
         this.events = new ArrayList();
     }

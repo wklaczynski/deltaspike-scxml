@@ -4,24 +4,19 @@
  */
 package org.apache.deltaspike.scxml.impl.invokers;
 
+import org.apache.deltaspike.scxml.impl.AsyncTrigger;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.Map;
 import javax.servlet.ServletContext;
 import org.apache.commons.scxml.*;
-import org.apache.commons.scxml.env.SimpleDispatcher;
-import org.apache.commons.scxml.env.SimpleErrorReporter;
 import org.apache.commons.scxml.invoke.Invoker;
 import org.apache.commons.scxml.invoke.InvokerException;
 import org.apache.commons.scxml.model.ModelException;
-import org.apache.commons.scxml.model.SCXML;
-import org.apache.commons.scxml.model.State;
 import org.apache.deltaspike.core.api.provider.BeanProvider;
 import org.apache.deltaspike.scxml.api.DialogInvoker;
 import org.apache.deltaspike.scxml.api.DialogManager;
-import org.apache.deltaspike.scxml.impl.DelegatingListener;
 import org.apache.deltaspike.scxml.impl.DialogPublisher;
 
 /**
@@ -48,10 +43,6 @@ public class SubInvoker implements Invoker, Serializable {
      * Invoking document's SCInstance.
      */
     private SCInstance parentSCInstance;
-    /**
-     * The invoked state machine executor.
-     */
-    private SCXMLExecutor executor;
     /**
      * Cancellation status.
      */
@@ -100,7 +91,6 @@ public class SubInvoker implements Invoker, Serializable {
         try {
             DialogPublisher publisher = BeanProvider.getContextualReference(DialogPublisher.class);
             DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-            SCXML scxml;
 
             URL url = new URL(source);
             String viewId = url.getFile();
@@ -115,46 +105,7 @@ public class SubInvoker implements Invoker, Serializable {
                 viewId = viewId.substring(contextPath.length());
             }
 
-            scxml = publisher.getModel(viewId);
-            Evaluator eval = parentSCInstance.getEvaluator();
-            executor = new SCXMLExecutor(eval, new SimpleDispatcher(), new SimpleErrorReporter());
-            executor.setRootContext(executor.getEvaluator().newContext(null));
-            Context rootCtx = executor.getRootContext();
-            for (Iterator iter = params.entrySet().iterator(); iter.hasNext();) {
-                Map.Entry entry = (Map.Entry) iter.next();
-                rootCtx.setLocal((String) entry.getKey(), entry.getValue());
-            }
-            rootCtx.setLocal("scxml_has_parent", true);
-            executor.setRootContext(rootCtx);
-            executor.setStateMachine(scxml);
-            executor.addListener(scxml, new DelegatingListener());
-
-            Map<String, Class<Invoker>> customInvokers = publisher.getCustomInvokers();
-            for (Map.Entry<String, Class<Invoker>> entry : customInvokers.entrySet()) {
-                executor.registerInvokerClass(entry.getKey(), entry.getValue());
-            }
-
-            manager.pushExecutor(executor);
-
-            try {
-                executor.go();
-            } catch (ModelException me) {
-                throw new InvokerException(me.getMessage(), me.getCause());
-            }
-            if (executor.getCurrentStatus().isFinal()) {
-                manager.popExecutor();
-                Status status = executor.getCurrentStatus();
-                for (Iterator i = status.getStates().iterator(); i.hasNext();) {
-                    State state = (State) i.next();
-                    if (state.isFinal()) {
-                        TriggerEvent te = new TriggerEvent(eventPrefix + state.getId(), TriggerEvent.SIGNAL_EVENT);
-                        new AsyncTrigger(parentSCInstance.getExecutor(), te).start();
-                    }
-                }
-                TriggerEvent te = new TriggerEvent(eventPrefix + invokeDone, TriggerEvent.SIGNAL_EVENT);
-                new AsyncTrigger(parentSCInstance.getExecutor(), te).start();
-            }
-
+            manager.start(viewId, params);
         } catch (MalformedURLException ex) {
             throw new InvokerException(ex);
         }
@@ -168,6 +119,8 @@ public class SubInvoker implements Invoker, Serializable {
         if (cancelled) {
             return;
         }
+        DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
+        SCXMLExecutor executor = manager.getExecutor();
         boolean doneBefore = executor.getCurrentStatus().isFinal();
         try {
             executor.triggerEvents(evts);
@@ -175,30 +128,7 @@ public class SubInvoker implements Invoker, Serializable {
             throw new InvokerException(me.getMessage(), me.getCause());
         }
         if (!doneBefore && executor.getCurrentStatus().isFinal()) {
-            AsyncTrigger trigger = new AsyncTrigger(parentSCInstance.getExecutor());
-            Status status = executor.getCurrentStatus();
-            DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-            manager.popExecutor();
-            for (Iterator i = status.getStates().iterator(); i.hasNext();) {
-                State state = (State) i.next();
-                if (state.isFinal()) {
-                    TriggerEvent te = new TriggerEvent(eventPrefix + state.getId(), TriggerEvent.SIGNAL_EVENT);
-                    trigger.add(te);
-                }
-            }
-            TriggerEvent te = new TriggerEvent(eventPrefix + invokeDone, TriggerEvent.SIGNAL_EVENT);
-            trigger.add(te);
-            
-            Context ctx = executor.getRootContext();
-            if(ctx.has("__@result@__")){
-                Context result = (Context) ctx.get("__@result@__");
-                Status pstatus = parentSCInstance.getExecutor().getCurrentStatus();
-                State pstate = (State) pstatus.getStates().iterator().next();
-                Context pcontext = parentSCInstance.getContext(pstate);
-                pcontext.setLocal("__@result@__", result);
-            }
-            
-            trigger.start();
+            manager.stop(parentSCInstance.getExecutor());
         }
     }
 
