@@ -207,6 +207,7 @@ public class DialogManagerImpl implements DialogManager {
 
             AsyncTrigger trigger = new AsyncTrigger(parent);
 
+            Context ctx = executor.getRootContext();
             Status pstatus = parent.getCurrentStatus();
             for (Iterator j = pstatus.getStates().iterator(); j.hasNext();) {
                 State pstate = (State) j.next();

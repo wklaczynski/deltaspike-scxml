@@ -14,6 +14,7 @@ import org.apache.commons.scxml.*;
 import org.apache.commons.scxml.invoke.Invoker;
 import org.apache.commons.scxml.invoke.InvokerException;
 import org.apache.commons.scxml.model.ModelException;
+import org.apache.commons.scxml.model.State;
 import org.apache.deltaspike.core.api.provider.BeanProvider;
 import org.apache.deltaspike.scxml.api.DialogInvoker;
 import org.apache.deltaspike.scxml.api.DialogManager;
@@ -128,6 +129,14 @@ public class SubInvoker implements Invoker, Serializable {
             throw new InvokerException(me.getMessage(), me.getCause());
         }
         if (!doneBefore && executor.getCurrentStatus().isFinal()) {
+            Context ctx = executor.getRootContext();
+            if (ctx.has("__@result@__")) {
+                Context result = (Context) ctx.get("__@result@__");
+                Status pstatus = parentSCInstance.getExecutor().getCurrentStatus();
+                State pstate = (State) pstatus.getStates().iterator().next();
+                Context pcontext = parentSCInstance.getContext(pstate);
+                pcontext.setLocal("__@result@__", result);
+            }
             manager.stop(parentSCInstance.getExecutor());
         }
     }
