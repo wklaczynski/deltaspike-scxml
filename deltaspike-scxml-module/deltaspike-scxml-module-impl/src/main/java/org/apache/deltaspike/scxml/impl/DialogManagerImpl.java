@@ -185,15 +185,15 @@ public class DialogManagerImpl implements DialogManager {
         SCXMLExecutor executor = stack.pop();
         SCXMLExecutor parent = null;
 
-        while(!stack.empty()){
+        while (!stack.empty()) {
             parent = stack.peek();
-            if(parent == to){
+            if (parent == to) {
                 break;
             }
             executor = stack.pop();
             parent = null;
         }
-        
+
         if (parent == null) {
 
             if (!conversation.isTransient()) {
@@ -210,13 +210,19 @@ public class DialogManagerImpl implements DialogManager {
                 State pstate = (State) j.next();
                 String eventPrefix = pstate.getId() + ".invoke.";
 
+                boolean stop = false;
                 Status status = executor.getCurrentStatus();
                 for (Iterator i = status.getStates().iterator(); i.hasNext();) {
                     State state = (State) i.next();
                     if (state.isFinal()) {
                         TriggerEvent te = new TriggerEvent(eventPrefix + state.getId(), TriggerEvent.SIGNAL_EVENT);
                         trigger.add(te);
+                        stop = true;
                     }
+                }
+                if (!stop) {
+                    TriggerEvent te = new TriggerEvent(eventPrefix + "close", TriggerEvent.SIGNAL_EVENT);
+                    trigger.add(te);
                 }
                 TriggerEvent te = new TriggerEvent(eventPrefix + "done", TriggerEvent.SIGNAL_EVENT);
                 trigger.add(te);
