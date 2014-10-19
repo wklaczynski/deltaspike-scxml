@@ -22,6 +22,8 @@ public interface DialogManager {
     
     void stop();
     
+    void stop(SCXMLExecutor to);
+    
     void pushExecutor(SCXMLExecutor executor);
 
     void popExecutor();
@@ -32,7 +34,4 @@ public interface DialogManager {
     
     void flush();
 
-    Stack<SCXMLExecutor> popStack();
-
-    void pushStack(Stack<SCXMLExecutor> pushed);
 }
