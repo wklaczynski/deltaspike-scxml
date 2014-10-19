@@ -26,6 +26,8 @@ import org.apache.deltaspike.scxml.api.DialogManager;
 public class SCXMLViewDeclarationLanguage extends ViewDeclarationLanguage {
 
     ViewDeclarationLanguage wrapped;
+    private String sufix;
+    boolean lock;
 
     public SCXMLViewDeclarationLanguage(ViewDeclarationLanguage wrapped) {
         this.wrapped = wrapped;
@@ -46,43 +48,57 @@ public class SCXMLViewDeclarationLanguage extends ViewDeclarationLanguage {
         return wrapped.getScriptComponentResource(context, componentResource);
     }
 
+    private String getSufix() {
+        if (sufix == null) {
+            FacesContext context = FacesContext.getCurrentInstance();
+            sufix = context.getExternalContext().getInitParameter("javax.faces.DIALOG_ACTION_SUFIX");
+            if (sufix == null) {
+                sufix = ".scxml";
+            }
+        }
+        return sufix;
+    }
+
     @Override
     public UIViewRoot createView(FacesContext context, String viewId) {
-        String scxmlSufix = context.getExternalContext().getInitParameter("javax.faces.DIALOG_ACTION_SUFIX");
-        if (scxmlSufix == null) {
-            scxmlSufix = ".scxml";
-        }
-
-        if (viewId.endsWith(scxmlSufix)) {
-            String path = viewId.substring(0, viewId.lastIndexOf(scxmlSufix));
-            path += ".scxml";
-            Flash flash = context.getExternalContext().getFlash();
-            Map<String, Object> params = new LinkedHashMap<String, Object>();
-            Set<String> keySet = flash.keySet();
-            for (String key : keySet) {
-                params.put(key, flash.get(key));
-            }
-            Map<String, String> pmap = context.getExternalContext().getRequestParameterMap();
-            for (String key : pmap.keySet()) {
-                params.put(key, pmap.get(key));
-            }
-
-            DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-            UIViewRoot scxmlRoot = new UIViewRoot();
-            scxmlRoot.setViewId(viewId);
-            UIViewRoot oldRoot = context.getViewRoot();
-            try {
-                if (context.getViewRoot() == null) {
-                    context.setViewRoot(scxmlRoot);
-                }
-                manager.start(path, params);
-            } finally {
-                if (oldRoot != null) {
-                    context.setViewRoot(oldRoot);
-                }
-            }
-            UIViewRoot viewRoot = context.getViewRoot();
+        if (lock) {
+            UIViewRoot viewRoot = wrapped.createView(context, viewId);
             return viewRoot;
+        } else if (viewId.endsWith(getSufix())) {
+            lock = true;
+            try {
+                DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
+                String path = viewId.substring(0, viewId.lastIndexOf(getSufix()));
+                path += ".scxml";
+                Flash flash = context.getExternalContext().getFlash();
+                Map<String, Object> params = new LinkedHashMap<String, Object>();
+                Set<String> keySet = flash.keySet();
+                for (String key : keySet) {
+                    params.put(key, flash.get(key));
+                }
+                Map<String, String> pmap = context.getExternalContext().getRequestParameterMap();
+                for (String key : pmap.keySet()) {
+                    params.put(key, pmap.get(key));
+                }
+
+                UIViewRoot scxmlRoot = new UIViewRoot();
+                scxmlRoot.setViewId(viewId);
+                UIViewRoot oldRoot = context.getViewRoot();
+                try {
+                    if (context.getViewRoot() == null) {
+                        context.setViewRoot(scxmlRoot);
+                    }
+                    manager.start(path, params);
+                } finally {
+                    if (oldRoot != null) {
+                        context.setViewRoot(oldRoot);
+                    }
+                }
+                UIViewRoot viewRoot = context.getViewRoot();
+                return viewRoot;
+            } finally {
+                lock = false;
+            }
         } else {
             UIViewRoot viewRoot = wrapped.createView(context, viewId);
             return viewRoot;
@@ -97,6 +113,7 @@ public class SCXMLViewDeclarationLanguage extends ViewDeclarationLanguage {
     @Override
     public void buildView(FacesContext context, UIViewRoot root) throws IOException {
         wrapped.buildView(context, root);
+
     }
 
     @Override

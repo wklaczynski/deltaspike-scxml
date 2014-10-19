@@ -25,7 +25,7 @@ import org.apache.deltaspike.scxml.impl.invokers.ViewInvoker;
 public class DialogNavigationHandler extends ConfigurableNavigationHandler {
 
     private final static Logger logger = Logger.getLogger(DialogNavigationHandler.class.getName());
-    private NavigationHandler wrappedNavigationHandler;
+    private final NavigationHandler wrappedNavigationHandler;
 
     public DialogNavigationHandler(NavigationHandler navigationHandler) {
         this.wrappedNavigationHandler = navigationHandler;
