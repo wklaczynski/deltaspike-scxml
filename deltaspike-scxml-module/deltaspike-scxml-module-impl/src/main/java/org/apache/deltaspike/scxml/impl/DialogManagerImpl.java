@@ -96,7 +96,7 @@ public class DialogManagerImpl implements DialogManager {
         }
 
         SCXMLExecutor result = stack.peek();
-        for (int i = stack.size() - 1; i < 1; i--) {
+        for (int i = stack.size() - 1; i > 0; i--) {
             if (stack.get(i - 1) == parent) {
                 result = stack.get(i);
                 break;
