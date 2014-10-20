@@ -121,7 +121,7 @@ public class SubInvoker implements Invoker, Serializable {
             return;
         }
         DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-        SCXMLExecutor executor = manager.getExecutor();
+        SCXMLExecutor executor = manager.getExecutor(parentSCInstance.getExecutor());
         boolean doneBefore = executor.getCurrentStatus().isFinal();
         try {
             executor.triggerEvents(evts);

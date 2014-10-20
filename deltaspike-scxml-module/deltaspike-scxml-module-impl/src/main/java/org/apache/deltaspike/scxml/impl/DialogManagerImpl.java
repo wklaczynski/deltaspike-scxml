@@ -82,11 +82,28 @@ public class DialogManagerImpl implements DialogManager {
 
     @Override
     public SCXMLExecutor getExecutor() {
+        return getExecutor(null);
+    }
+
+    @Override
+    public SCXMLExecutor getExecutor(SCXMLExecutor parent) {
         initialize();
         if (getStack().isEmpty()) {
             return null;
         }
-        return stack.peek();
+        if (parent == null) {
+            return stack.peek();
+        }
+
+        SCXMLExecutor result = stack.peek();
+        for (int i = stack.size() - 1; i < 1; i--) {
+            if (stack.get(i - 1) == parent) {
+                result = stack.get(i);
+                break;
+            }
+        }
+
+        return result;
     }
 
     @Override
@@ -137,7 +154,9 @@ public class DialogManagerImpl implements DialogManager {
             SCXMLExecutor executor;
             SCXML statemachine = publisher.getModel(src);
 
-            executor = new SCXMLExecutor(new DialogELEvaluator(), new SimpleDispatcher(), new SimpleErrorReporter());
+            DialogELEvaluator evaluator = new DialogELEvaluator();
+            executor = new SCXMLExecutor(evaluator, new SimpleDispatcher(), new SimpleErrorReporter());
+            evaluator.setExecutor(executor);
             Context rootCtx = executor.getEvaluator().newContext(null);
             if (params != null) {
                 for (Iterator iter = params.entrySet().iterator(); iter.hasNext();) {

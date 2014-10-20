@@ -29,10 +29,19 @@ public class DialogELEvaluator implements Evaluator, Serializable {
     private static final Pattern inFct = Pattern.compile("In\\(");
     private static final Pattern dataFct = Pattern.compile("Data\\(");
     private final ApplicationAssociate associate;
+    private SCXMLExecutor executor;
 
     public DialogELEvaluator() {
         FacesContext ctx = FacesContext.getCurrentInstance();
         associate = ApplicationAssociate.getInstance(ctx.getExternalContext());
+    }
+    
+    public void setExecutor(SCXMLExecutor executor) {
+        this.executor = executor;
+    }
+
+    public SCXMLExecutor getExecutor() {
+        return executor;
     }
 
     @Override
@@ -43,7 +52,6 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         CompilationMessageHolder messageHolder = new CompilationMessageHolderImpl();
         
         DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-        SCXMLExecutor executor = manager.getExecutor();
         FacesContext fc = FacesContext.getCurrentInstance();
         ExpressionFactory ef = fc.getApplication().getExpressionFactory();
         ELContext fcontext = fc.getELContext();
@@ -74,7 +82,6 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         CompilationMessageHolder messageHolder = new CompilationMessageHolderImpl();
 
         DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-        SCXMLExecutor executor = manager.getExecutor();
         FacesContext fc = FacesContext.getCurrentInstance();
         ExpressionFactory ef = fc.getApplication().getExpressionFactory();
         ELContext fcontext = fc.getELContext();
@@ -106,7 +113,6 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         CompilationMessageHolder messageHolder = new CompilationMessageHolderImpl();
         
         DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-        SCXMLExecutor executor = manager.getExecutor();
         FacesContext fc = FacesContext.getCurrentInstance();
         ExpressionFactory ef = fc.getApplication().getExpressionFactory();
         ELContext fcontext = fc.getELContext();
@@ -138,7 +144,6 @@ public class DialogELEvaluator implements Evaluator, Serializable {
         CompilationMessageHolder messageHolder = new CompilationMessageHolderImpl();
         
         DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-        SCXMLExecutor executor = manager.getExecutor();
         FacesContext fc = FacesContext.getCurrentInstance();
         ExpressionFactory ef = fc.getApplication().getExpressionFactory();
         ELContext fcontext = fc.getELContext();
