@@ -4,13 +4,16 @@
  */
 package org.apache.deltaspike.scxml.impl.faces;
 
+import com.sun.faces.util.RequestStateManager;
 import java.beans.BeanInfo;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import javax.faces.application.Resource;
+import javax.faces.application.ViewHandler;
 import javax.faces.component.UIViewRoot;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.context.Flash;
 import javax.faces.view.StateManagementStrategy;
@@ -25,14 +28,14 @@ import org.apache.deltaspike.scxml.api.DialogManager;
  */
 public class SCXMLViewDeclarationLanguage extends ViewDeclarationLanguage {
 
-    ViewDeclarationLanguage wrapped;
+    public static ViewDeclarationLanguage wrapped;
     private String sufix;
     boolean lock;
 
     public SCXMLViewDeclarationLanguage(ViewDeclarationLanguage wrapped) {
         this.wrapped = wrapped;
     }
-
+    
     @Override
     public BeanInfo getComponentMetadata(FacesContext context, Resource componentResource) {
         return wrapped.getComponentMetadata(context, componentResource);
@@ -100,8 +103,27 @@ public class SCXMLViewDeclarationLanguage extends ViewDeclarationLanguage {
                 lock = false;
             }
         } else {
-            UIViewRoot viewRoot = wrapped.createView(context, viewId);
-            return viewRoot;
+            lock = true;
+            try {
+                DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
+                UIViewRoot viewRoot = wrapped.createView(context, viewId);
+                if (manager.isStarted()) {
+                    ExternalContext ec = context.getExternalContext();
+                    Object state = ec.getRequestMap().get("__@@DialogLastState");
+                    if (state != null) {
+                        context.getAttributes().put(RequestStateManager.FACES_VIEW_STATE, state);
+                        StateManagementStrategy strategy = getStateManagementStrategy(context, viewId);
+                        context.setViewRoot(viewRoot);
+                        ViewHandler vh = context.getApplication().getViewHandler();
+                        String renderKitId = vh.calculateRenderKitId(context);
+                        viewRoot = strategy.restoreView(context, viewId, renderKitId);
+                    }
+                }
+
+                return viewRoot;
+            } finally {
+                lock = false;
+            }
         }
     }
 

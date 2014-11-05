@@ -4,22 +4,29 @@
  */
 package org.apache.deltaspike.scxml.impl.invokers;
 
+import com.sun.faces.util.RequestStateManager;
 import org.apache.deltaspike.scxml.impl.AsyncTrigger;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.faces.FacesException;
 import javax.faces.application.Application;
 import javax.faces.application.ViewHandler;
 import javax.faces.component.UIViewRoot;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.context.PartialViewContext;
+import javax.faces.render.RenderKit;
+import javax.faces.render.ResponseStateManager;
+import javax.faces.view.StateManagementStrategy;
+import javax.faces.view.ViewDeclarationLanguage;
 import javax.servlet.ServletContext;
 import org.apache.commons.scxml.*;
 import org.apache.commons.scxml.invoke.Invoker;
@@ -44,8 +51,9 @@ public class ViewInvoker implements Invoker, Serializable, PathResolverHolder {
     private String paramPrefix;
     private boolean cancelled;
     private SCInstance parentSCInstance;
-    private static String invokePrefix = ".view.";
+    private static final String invokePrefix = ".view.";
     private PathResolver pathResolver;
+    private Object state;
 
     @Override
     public void setParentStateId(String parentStateId) {
@@ -81,7 +89,13 @@ public class ViewInvoker implements Invoker, Serializable, PathResolverHolder {
                 viewId = viewId.substring(viewId.indexOf(contextPath));
                 viewId = viewId.substring(contextPath.length());
             }
-            
+
+//            String lastViewId = (String) ec.getRequestMap().get("__@@DialogLastViewId");
+//            Object state = null;
+//            if (viewId.equals(lastViewId)) {
+//                state = ec.getRequestMap().get("__@@DialogLastState");
+//            }
+
             ViewHandler vh = fc.getApplication().getViewHandler();
             if (fc.getViewRoot() != null) {
                 String currentViewId = fc.getViewRoot().getViewId();
@@ -101,6 +115,14 @@ public class ViewInvoker implements Invoker, Serializable, PathResolverHolder {
 
                 Application application = fc.getApplication();
                 ViewHandler viewHandler = application.getViewHandler();
+
+                if (state != null) {
+                    RenderKit renderKit = fc.getRenderKit();
+                    ResponseStateManager rsm = renderKit.getResponseStateManager();
+                    String viewState = rsm.getViewState(fc, state);
+                    param.put(ResponseStateManager.VIEW_STATE_PARAM, Arrays.asList(viewState));
+                }
+
                 String redirect = viewHandler.getRedirectURL(fc, viewId, SharedUtils.evaluateExpressions(fc, param), true);
                 clearViewMapIfNecessary(fc.getViewRoot(), viewId);
                 updateRenderTargets(fc, viewId);
@@ -109,10 +131,16 @@ public class ViewInvoker implements Invoker, Serializable, PathResolverHolder {
                 ec.redirect(redirect);
                 fc.responseComplete();
             } else {
-                UIViewRoot view = vh.createView(fc, viewId);
+                UIViewRoot view;
+                if (state != null) {
+                    fc.getAttributes().put(RequestStateManager.FACES_VIEW_STATE, state);
+                    view = vh.restoreView(fc, viewId);
+                } else {
+                    view = vh.createView(fc, viewId);
+                }
+                view.setViewId(viewId);
                 view.getViewMap(true).put(VIEW_PARAMS_MAP, params);
                 view.getViewMap(true).putAll(params);
-                view.setViewId(viewId);
                 fc.setViewRoot(view);
                 fc.renderResponse();
             }
@@ -182,6 +210,16 @@ public class ViewInvoker implements Invoker, Serializable, PathResolverHolder {
     public void cancel() throws InvokerException {
         ViewParamsContext context = BeanProvider.getContextualReference(ViewParamsContext.class);
         context.clear();
+
+        FacesContext fc = FacesContext.getCurrentInstance();
+        UIViewRoot viewRoot = fc.getViewRoot();
+        if (viewRoot != null) {
+            String lastViewId = viewRoot.getViewId();
+            RenderKit renderKit = fc.getRenderKit();
+            ResponseStateManager rsm = renderKit.getResponseStateManager();
+            state = rsm.getState(fc, lastViewId);
+        }
+
         cancelled = true;
     }
 
@@ -194,4 +232,42 @@ public class ViewInvoker implements Invoker, Serializable, PathResolverHolder {
     public PathResolver getPathResolver() {
         return pathResolver;
     }
+
+    public static void restoreView(String viewId, Object state) {
+        FacesContext fc = FacesContext.getCurrentInstance();
+        String currentViewId = fc.getViewRoot().getViewId();
+
+        if (viewId != null && !viewId.equals(currentViewId)) {
+            ViewHandler vh = fc.getApplication().getViewHandler();
+
+            try {
+                fc.setProcessingEvents(false);
+                ViewDeclarationLanguage vdl = vh.getViewDeclarationLanguage(fc, viewId);
+                UIViewRoot viewRoot = vdl.getViewMetadata(fc, viewId).createMetadataView(fc);
+                fc.setViewRoot(viewRoot);
+                Object[] rawState = (Object[]) state;
+                if (rawState != null) {
+                    Map<String, Object> rstate = (Map<String, Object>) rawState[1];
+                    if (rstate != null) {
+                        String cid = viewRoot.getClientId(fc);
+                        Object stateObj = rstate.get(cid);
+                        if (stateObj != null) {
+                            fc.getAttributes().put("com.sun.faces.application.view.restoreViewScopeOnly", true);
+                            viewRoot.restoreState(fc, stateObj);
+                            fc.getAttributes().remove("com.sun.faces.application.view.restoreViewScopeOnly");
+                        }
+                    }
+                }
+                fc.setProcessingEvents(true);
+                vdl.buildView(fc, viewRoot);
+            } catch (IOException ioe) {
+                throw new FacesException(ioe);
+            }
+
+            UIViewRoot root = vh.restoreView(fc, viewId);
+            root.setViewId(viewId);
+            fc.setViewRoot(root);
+        }
+    }
+
 }

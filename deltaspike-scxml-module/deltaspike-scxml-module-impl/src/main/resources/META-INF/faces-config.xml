@@ -9,15 +9,15 @@
     version="2.0">
 
     <application>
-        <navigation-handler>org.apache.deltaspike.scxml.impl.faces.DialogNavigationHandler</navigation-handler>
         <el-resolver>org.apache.deltaspike.scxml.impl.el.ViewELResolver</el-resolver>
         <el-resolver>org.apache.deltaspike.scxml.impl.el.DialogScopeELResolver</el-resolver>
-        <state-manager></state-manager>
+        <navigation-handler>org.apache.deltaspike.scxml.impl.faces.DialogNavigationHandler</navigation-handler>
+        <view-handler>org.apache.deltaspike.scxml.impl.faces.SCXMLViewHandler</view-handler>
     </application>
 
-    <factory>
+    <!--factory>
         <view-declaration-language-factory>org.apache.deltaspike.scxml.impl.faces.DialogViewDeclarationLanguageFactory</view-declaration-language-factory>
-    </factory>
+    </factory-->
 
 
     
