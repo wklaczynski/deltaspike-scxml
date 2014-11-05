@@ -9,11 +9,6 @@ import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.faces.render.RenderKit;
-import javax.faces.render.ResponseStateManager;
 import javax.servlet.ServletContext;
 import org.apache.commons.scxml.*;
 import org.apache.commons.scxml.invoke.Invoker;
@@ -66,9 +61,6 @@ public class SubInvoker implements Invoker, Serializable {
      * Suffix for invoke cancel response event.
      */
     private static final String invokeCancelResponse = "cancel.response";
-    private String viewState;
-    private String lastViewId;
-    private Object state;
 
     public SubInvoker() {
         super();
@@ -100,15 +92,6 @@ public class SubInvoker implements Invoker, Serializable {
         try {
             DialogPublisher publisher = BeanProvider.getContextualReference(DialogPublisher.class);
             DialogManager manager = BeanProvider.getContextualReference(DialogManager.class);
-
-            FacesContext fc = FacesContext.getCurrentInstance();
-            UIViewRoot viewRoot = fc.getViewRoot();
-            if (viewRoot != null) {
-                lastViewId = viewRoot.getViewId();
-                RenderKit renderKit = fc.getRenderKit();
-                ResponseStateManager rsm = renderKit.getResponseStateManager();
-                state = rsm.getState(fc, lastViewId);
-            }
 
             URL url = new URL(source);
             String viewId = url.getFile();
@@ -154,13 +137,6 @@ public class SubInvoker implements Invoker, Serializable {
                 Context pcontext = parentSCInstance.getContext(pstate);
                 pcontext.setLocal("__@result@__", result);
             }
-            if (lastViewId != null) {
-                FacesContext fc = FacesContext.getCurrentInstance();
-                ExternalContext ec = fc.getExternalContext();
-                ec.getRequestMap().put("__@@DialogLastViewId", lastViewId);
-                ec.getRequestMap().put("__@@DialogLastState", state);
-            }
-
             manager.stop(parentSCInstance.getExecutor());
         }
     }

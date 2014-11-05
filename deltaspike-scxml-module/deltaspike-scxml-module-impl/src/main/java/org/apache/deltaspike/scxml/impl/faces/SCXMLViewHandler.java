@@ -8,14 +8,12 @@ package org.apache.deltaspike.scxml.impl.faces;
  * To change this template, choose Tools | Template Manager and open the
  * template in the editor.
  */
-import com.sun.faces.util.RequestStateManager;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import javax.faces.application.ViewHandler;
 import javax.faces.application.ViewHandlerWrapper;
 import javax.faces.component.UIViewRoot;
-import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.context.Flash;
 import org.apache.deltaspike.core.api.provider.BeanProvider;
