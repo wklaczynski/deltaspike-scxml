@@ -148,7 +148,7 @@ public class ViewInvoker implements Invoker, Serializable, PathResolverHolder {
 
                 viewState = stateContext.get(stateKey + "ViewState");
                 String lastViewId = (String) stateContext.get(stateKey + "LastViewId");
-                if(lastViewId != null){
+                if (lastViewId != null) {
                     viewId = lastViewId;
                 }
 
@@ -192,10 +192,12 @@ public class ViewInvoker implements Invoker, Serializable, PathResolverHolder {
                 if (viewState != null) {
                     fc.getAttributes().put(RequestStateManager.FACES_VIEW_STATE, viewState);
                     view = vh.restoreView(fc, viewId);
+                    fc.setViewRoot(view);
+                    vh.initView(fc);
                 } else {
                     view = vh.createView(fc, viewId);
+                    view.setViewId(viewId);
                 }
-                view.setViewId(viewId);
                 view.getViewMap(true).put(VIEW_PARAMS_MAP, vieparams);
                 view.getViewMap(true).putAll(vieparams);
                 fc.setViewRoot(view);
