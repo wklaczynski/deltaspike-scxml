@@ -87,6 +87,7 @@ public class ParallelContextImpl extends AbstractContext {
         if (target instanceof Parallel) {
             Stack<ContextualStorage> stack = getStack();
             if (!stack.isEmpty()) {
+                destroyAllActive();
                 stack.pop();
             }
         }

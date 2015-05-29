@@ -5,15 +5,20 @@
 package org.apache.deltaspike.scxml.impl.context;
 
 import java.lang.annotation.Annotation;
+import java.util.Stack;
 import javax.enterprise.context.spi.Contextual;
+import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import org.apache.commons.scxml.Context;
 import org.apache.commons.scxml.SCXMLExecutor;
+import org.apache.commons.scxml.model.Parallel;
+import org.apache.commons.scxml.model.TransitionTarget;
 import org.apache.deltaspike.core.util.context.AbstractContext;
 import org.apache.deltaspike.core.util.context.ContextualStorage;
 import org.apache.deltaspike.scxml.api.DialogScoped;
+import org.apache.deltaspike.scxml.api.events.DialogOnExitEvent;
 import org.apache.deltaspike.scxml.impl.DialogUtils;
 
 /**
@@ -73,4 +78,12 @@ public class DialogContextImpl extends AbstractContext {
         }
         return result;
     }
+
+    public void onExitEvent(@Observes DialogOnExitEvent event) {
+        SCXMLExecutor executor = getExecutor();
+        if (executor.getCurrentStatus().isFinal()) {
+            destroyAllActive();
+        }
+    }
+
 }
