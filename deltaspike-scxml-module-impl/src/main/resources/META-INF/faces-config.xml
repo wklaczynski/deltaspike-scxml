@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<faces-config
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:bridge="http://www.portletfaces.org/xml/ns/portletfaces-bridge-2.0-extension"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+    http://java.sun.com/xml/ns/javaee/web-facesconfig_2_0.xsd"
+    version="2.0">
+
+    <application>
+        <el-resolver>org.apache.deltaspike.scxml.impl.el.ViewELResolver</el-resolver>
+        <el-resolver>org.apache.deltaspike.scxml.impl.el.DialogScopeELResolver</el-resolver>
+        <navigation-handler>org.apache.deltaspike.scxml.impl.faces.DialogNavigationHandler</navigation-handler>
+        <view-handler>org.apache.deltaspike.scxml.impl.faces.SCXMLViewHandler</view-handler>
+    </application>
+
+    <!--factory>
+        <view-declaration-language-factory>org.apache.deltaspike.scxml.impl.faces.DialogViewDeclarationLanguageFactory</view-declaration-language-factory>
+    </factory-->
+
+
+    
+    
+</faces-config>
