@@ -110,7 +110,7 @@ public class SubInvoker implements Invoker, Serializable {
                 viewId = viewId.substring(pos + 18);
             }
 
-            manager.start(viewId, params);
+            manager.start(viewId, params, false);
         } catch (MalformedURLException ex) {
             throw new InvokerException(ex);
         }

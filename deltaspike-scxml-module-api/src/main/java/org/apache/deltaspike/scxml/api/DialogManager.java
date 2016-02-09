@@ -20,7 +20,7 @@ public interface DialogManager {
 
     SCXMLExecutor getRootExecutor();
 
-    void start(String src, Map params);
+    SCXMLExecutor start(String src, Map params, boolean makeRoot);
 
     void stop();
 

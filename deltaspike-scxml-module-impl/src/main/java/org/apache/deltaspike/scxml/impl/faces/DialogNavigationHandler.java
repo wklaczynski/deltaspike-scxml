@@ -60,6 +60,7 @@ public class DialogNavigationHandler extends ConfigurableNavigationHandler {
                 } catch (Throwable ex) {
                     logger.log(Level.SEVERE, ex.getMessage(), ex);
                 }
+                executor = manager.getRootExecutor();
                 if (executor.getCurrentStatus().isFinal()) {
                     manager.stop();
                 }

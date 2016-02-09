@@ -84,7 +84,7 @@ public class SCXMLViewHandler extends ViewHandlerWrapper {
                         if (context.getViewRoot() == null) {
                             context.setViewRoot(scxmlRoot);
                         }
-                        manager.start(path, params);
+                        manager.start(path, params, false);
                     } finally {
                         if (oldRoot != null) {
                             context.setViewRoot(oldRoot);

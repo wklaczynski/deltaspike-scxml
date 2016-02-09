@@ -39,6 +39,7 @@ import org.apache.deltaspike.scxml.api.events.DialogOnFinalEvent;
 public class DialogManagerImpl implements DialogManager {
 
     private Stack<SCXMLExecutor> stack;
+    private Stack<Integer> roots;
     @Inject
     DialogPublisher publisher;
     @Inject
@@ -49,6 +50,7 @@ public class DialogManagerImpl implements DialogManager {
             load();
             if (stack == null) {
                 stack = new Stack<SCXMLExecutor>();
+                roots = new Stack<Integer>();
             }
         }
     }
@@ -63,6 +65,7 @@ public class DialogManagerImpl implements DialogManager {
                     continue;
                 }
                 stack = (Stack<SCXMLExecutor>) state[0];
+                roots = (Stack<Integer>) state[1];
                 break;
             }
         }
@@ -73,7 +76,10 @@ public class DialogManagerImpl implements DialogManager {
         List<DialogStateManager> references = BeanProvider.getContextualReferences(DialogStateManager.class, true);
         Object[] state = null;
         if (stack != null) {
-            state = new Object[]{stack};
+            state = new Object[]{
+                stack,
+                roots
+            };
         }
         for (DialogStateManager manager : references) {
             manager.saveState(state);
@@ -109,10 +115,12 @@ public class DialogManagerImpl implements DialogManager {
     @Override
     public SCXMLExecutor getRootExecutor() {
         initialize();
-        if (stack.isEmpty()) {
+        if (!roots.isEmpty()) {
+            Integer id = roots.peek();
+            return stack.get(id);
+        } else {
             return null;
         }
-        return getStack().get(0);
     }
 
     @Override
@@ -124,6 +132,9 @@ public class DialogManagerImpl implements DialogManager {
     @Override
     public void pushExecutor(SCXMLExecutor executor) {
         initialize();
+        if (getStack().isEmpty()) {
+            roots.push(0);
+        }
         getStack().push(executor);
         flush();
     }
@@ -131,7 +142,14 @@ public class DialogManagerImpl implements DialogManager {
     @Override
     public void popExecutor() {
         initialize();
+        int id = getStack().size() - 1;
+        while (roots.peek() > id) {
+            roots.pop();
+        }
         getStack().pop();
+        if (getStack().isEmpty()) {
+            roots.clear();
+        }
         flush();
     }
 
@@ -142,7 +160,7 @@ public class DialogManagerImpl implements DialogManager {
     }
 
     @Override
-    public void start(String src, Map params) {
+    public SCXMLExecutor start(String src, Map params, boolean makeRoot) {
         initialize();
         try {
             if (conversation.isTransient()) {
@@ -177,6 +195,12 @@ public class DialogManagerImpl implements DialogManager {
                 executor.registerInvokerClass(entry.getKey(), entry.getValue());
             }
             pushExecutor(executor);
+            if (makeRoot) {
+                int id = getStack().size() - 1;
+                if (roots.peek() != id) {
+                    roots.push(id);
+                }
+            }
 
             try {
                 executor.go();
@@ -184,9 +208,10 @@ public class DialogManagerImpl implements DialogManager {
             }
             if (executor.getCurrentStatus().isFinal()) {
                 stop(parent);
+                executor = null;
             }
             flush();
-
+            return executor;
         } catch (Throwable ex) {
             throw new IllegalStateException(ex);
         }
@@ -203,6 +228,8 @@ public class DialogManagerImpl implements DialogManager {
             throw new IllegalStateException("Instance SCXML has not yet been started");
         }
 
+        boolean chroot = false;
+
         SCXMLExecutor executor = stack.pop();
         SCXMLExecutor parent = null;
 
@@ -215,6 +242,12 @@ public class DialogManagerImpl implements DialogManager {
             parent = null;
         }
 
+        int id = getStack().size() - 1;
+        while (roots.peek() > id) {
+            roots.pop();
+            chroot = true;
+        }
+
         if (parent == null) {
 
             if (!conversation.isTransient()) {
@@ -222,7 +255,7 @@ public class DialogManagerImpl implements DialogManager {
             }
             BeanManager bm = new BeanManagerLocator().getBeanManager();
             bm.fireEvent(new DialogOnFinalEvent());
-        } else {
+        } else if (!chroot) {
 
             AsyncTrigger trigger = new AsyncTrigger(parent);
 
