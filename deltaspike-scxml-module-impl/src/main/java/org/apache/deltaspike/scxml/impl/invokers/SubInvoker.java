@@ -101,8 +101,8 @@ public class SubInvoker implements Invoker, Serializable {
                 viewId = viewId.substring(realPath.length());
             }
             String contextPath = ctx.getContextPath();
-            if (viewId.contains(contextPath)) {
-                viewId = viewId.substring(viewId.indexOf(contextPath));
+            if (viewId.startsWith(contextPath)) {
+                //viewId = viewId.substring(viewId.indexOf(contextPath));
                 viewId = viewId.substring(contextPath.length());
             }
             int pos = viewId.indexOf("META-INF/resources/");
