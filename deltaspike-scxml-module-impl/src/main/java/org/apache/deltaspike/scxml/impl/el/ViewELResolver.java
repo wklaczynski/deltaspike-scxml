@@ -7,7 +7,6 @@ package org.apache.deltaspike.scxml.impl.el;
 import java.beans.FeatureDescriptor;
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.el.ELContext;
 import javax.el.ELResolver;
 import javax.el.PropertyNotFoundException;
@@ -84,14 +83,4 @@ public class ViewELResolver extends ELResolver implements Serializable {
         return null;
     }
 
-    private DialogScope getDialogScope(ELContext context) {
-        return new DialogScope();
-    }
-
-    private static class DialogScope extends ConcurrentHashMap<String, Object> implements Serializable {
-
-        public DialogScope() {
-            super();
-        }
-    }
 }
