@@ -22,9 +22,9 @@ import org.apache.deltaspike.scxml.impl.DialogUtils;
  */
 public class DialogScopeELResolver extends ELResolver {
 
-    public static final String DIALOG_SCOPE = "dialogScope";
-    public static final String DIALOG_VARIABLE_NAME = "dialog";
-    public static final String STATE_VARIABLE_NAME = "state";
+    public static final String DIALOG_SCOPE = "xdialogScope";
+    public static final String DIALOG_VARIABLE_NAME = "xdialog";
+    public static final String STATE_VARIABLE_NAME = "xstate";
     public static final String DIALOG_PARAM_MAP = "org.scxml.attr";
 
     @Override
