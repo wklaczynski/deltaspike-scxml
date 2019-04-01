@@ -243,7 +243,7 @@ public class DialogManagerImpl implements DialogManager {
         }
 
         int id = getStack().size() - 1;
-        while (roots.peek() > id) {
+        while (!roots.isEmpty() && roots.peek() > id) {
             roots.pop();
             chroot = true;
         }
