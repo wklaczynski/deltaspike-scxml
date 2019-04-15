@@ -142,10 +142,17 @@ public class DialogManagerImpl implements DialogManager {
     @Override
     public void popExecutor() {
         initialize();
+        if (getStack().isEmpty()) {
+            return;
+        }
         int id = getStack().size() - 1;
-        while (roots.peek() > id) {
+        while (roots.peek() > id && !getStack().isEmpty()) {
             roots.pop();
         }
+        if (getStack().isEmpty()) {
+            return;
+        }
+
         getStack().pop();
         if (getStack().isEmpty()) {
             roots.clear();
